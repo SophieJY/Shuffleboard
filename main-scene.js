@@ -1,99 +1,82 @@
-window.Cube = window.classes.Cube =
-    class Cube extends Shape {
-        // Here's a complete, working example of a Shape subclass.  It is a blueprint for a cube.
-        constructor() {
-            super("positions", "normals"); // Name the values we'll define per each vertex.  They'll have positions and normals.
-
-            // First, specify the vertex positions -- just a bunch of points that exist at the corners of an imaginary cube.
-            this.positions.push(...Vec.cast(
-                [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
-                [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
-                [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]));
-            // Supply vectors that point away from eace face of the cube.  They should match up with the points in the above list
-            // Normal vectors are needed so the graphics engine can know if the shape is pointed at light or not, and color it accordingly.
-            this.normals.push(...Vec.cast(
-                [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-                [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-                [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]));
-
-            // Those two lists, positions and normals, fully describe the "vertices".  What's the "i"th vertex?  Simply the combined
-            // data you get if you look up index "i" of both lists above -- a position and a normal vector, together.  Now let's
-            // tell it how to connect vertex entries into triangles.  Every three indices in this list makes one triangle:
-            this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
-                14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
-            // It stinks to manage arrays this big.  Later we'll show code that generates these same cube vertices more automatically.
-        }
-    };
-
-window.Transforms_Sandbox = window.classes.Transforms_Sandbox =
-    class Transforms_Sandbox extends Tutorial_Animation {
-        display(graphics_state)
-        // This subclass of some other Scene overrides the display() function.  By only
-        // exposing that one function, which draws everything, this creates a very small code
-        // sandbox for editing a simple scene, and for experimenting with matrix transforms.
+window.Surface = window.classes.Surface =
+    class Surface extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
         {
-            let model_transform = Mat4.identity();
-            // Variable model_transform will be a temporary matrix that helps us draw most shapes.
-            // It starts over as the identity every single frame - coordinate axes at the origin.
-            graphics_state.lights = this.lights;
-            // Use the lights stored in this.lights.
-
-            /**********************************
-             Start coding down here!!!!
-             // From here on down it's just some example shapes drawn for you -- freely replace them
-             // with your own!  Notice the usage of the functions translation(), scale(), and rotation()
-             // to generate matrices, and the functions times(), which generates products of matrices.
-             **********************************/
-
-            const blue = Color.of(0, 0, 1, 1), yellow = Color.of(1, 1, 0, 1);
-            model_transform = model_transform.times(Mat4.translation([0, 3, 20]));
-            this.shapes.box.draw(graphics_state, model_transform, this.plastic.override({color: yellow}));
-            // Draw the top box.
-
-            const t = this.t = graphics_state.animation_time / 1000;
-            // Find how much time has passed in seconds, and use that to place shapes.
-
-            model_transform = model_transform.times(Mat4.translation([0, -2, 0]));
-            // Tweak our coordinate system downward for the next shape.
-
-            this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: blue}));
-            // Draw the ball.
-
-            if (!this.hover)    //  The first line below won't execute if the button on the page has been toggled:
-                model_transform = model_transform.times(Mat4.rotation(t, Vec.of(0, 1, 0)));
-            // Spin our coordinate frame as a function of time.
-
-            model_transform = model_transform.times(Mat4.rotation(1, Vec.of(0, 0, 1)))  // Rotate another axis by a constant value.
-                .times(Mat4.scale([1, 2, 1]))      // Stretch the coordinate frame.
-                .times(Mat4.translation([0, -1.5, 0]));     // Translate down enough for the two volumes to miss.
-            this.shapes.box.draw(graphics_state, model_transform, this.plastic.override({color: yellow}));   // Draw the bottom box.
+            super("positions", "normals");    
+                                           // Name the values we'll define per each vertex.
+                                           //order of corners: bottm left,right and upper left, right
+            this.positions.push(...Vec.cast([-5, 0, 0], [5, 0, 0], [-5, 14, 0], [5, 14, 0]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
         }
     };
 
-window.Cube_Outline = window.classes.Cube_Outline =
-    class Cube_Outline extends Shape {
-        constructor() {
-            super("positions", "colors"); // Name the values we'll define per each vertex.
-
-            //  TODO (Requirement 5).
-            // When a set of lines is used in graphics, you should think of the list entries as
-            // broken down into pairs; each pair of vertices will be drawn as a line segment.
-
-            this.indexed = false;       // Do this so we won't need to define "this.indices".
+window.Points_Rectangle = window.classes.Three_Points_Rectangle =
+    class Three_Points_Rectangle extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
+        {
+            super("positions", "normals");   
+                                            // Name the values we'll define per each vertex.
+                                            //order of corners: bottm left,right and upper left, right
+            this.positions.push(...Vec.cast([-5, 14, 0], [5, 14, 0], [-5, 16, 0], [5, 16, 0]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
         }
     };
-
-window.Cube_Single_Strip = window.classes.Cube_Single_Strip =
-    class Cube_Single_Strip extends Shape {
-        constructor() {
-            super("positions", "normals");
-
-            // TODO (Extra credit part I)
+ 
+window.Ball = window.classes.Ball =
+    class Ball extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
+        {
+            super("positions", "normals");   
+                                            // Name the values we'll define per each vertex.
+                                            //order of corners: bottm left,right and upper left, right
+            this.positions.push(...Vec.cast([-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
         }
     };
-
-window.Assignment_Two_Scene = window.classes.Assignment_Two_Scene =
-    class Assignment_Two_Scene extends Scene_Component {
+window.Energy_Bar = window.classes.Energy_Bar =
+    class Energy_Bar extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
+        {
+            super("positions", "normals");   
+                                            // Name the values we'll define per each vertex.
+                                            //order of corners: bottm left,right and upper left, right
+            this.positions.push(...Vec.cast([-20, 0, 0], [-16, 0, 0], [-20, 2, 0], [-16, 2, 0]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
+        }
+    };
+window.Angle_Stick = window.classes.Angle_Stick =
+    class Angle_Stick extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
+        {
+            super("positions", "normals");   
+                                            // Name the values we'll define per each vertex.
+                                            //order of corners: bottm left,right and upper left, right
+            this.positions.push(...Vec.cast([-0.1, 0, 1.5], [0.1, 0, 1.5], [-0.1, 4, 1.5], [0.1, 4, 1.5]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
+        }
+    };
+window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
+    class Shuffle_Board_Scene extends Scene_Component {
         constructor(context, control_box) {
             // The scene begins by requesting the camera, shapes, and materials it will need.
             super(context, control_box);
@@ -104,12 +87,24 @@ window.Assignment_Two_Scene = window.classes.Assignment_Two_Scene =
             const r = context.width / context.height;
             context.globals.graphics_state.camera_transform = Mat4.translation([5, -10, -30]);  // Locate the camera here (inverted matrix).
             context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
-
+            //Adding shapes on the screen
             const shapes = {
-                'box': new Cube(),
-                'strip': new Cube_Single_Strip(),
-                'outline': new Cube_Outline()
+                'surface': new Surface(),
+                'points': new Points_Rectangle(),
+                'ball': new Ball(),
+                'energyBar': new Energy_Bar(),
+                'angleLine': new Angle_Stick()
             };
+            //initial variables
+            this.numberOfBalls=4;
+            this.friction= 0.1 + Math.random() / 7;
+            this.length=20;
+            this.width=10;
+            this.score={}
+            this.restart=false;
+            this.energyBar=false;
+            this.angleStickStillness=false;
+            this.randomTranslationFactor = Math.floor(Math.random()*3)
             // At the beginning of our program, load one of each of these shape
             // definitions onto the GPU.  NOTE:  Only do this ONCE per shape
             // design.  Once you've told the GPU what the design of a cube is,
@@ -128,39 +123,79 @@ window.Assignment_Two_Scene = window.classes.Assignment_Two_Scene =
             this.plastic = this.clay.override({specularity: .6});
 
             this.lights = [new Light(Vec.of(0, 5, 5, 1), Color.of(1, .4, 1, 1), 100000)];
-
-            this.set_colors();
+        
         }
-
-        set_colors() {
-            // TODO:  Create a class member variable to store your cube's colors.
-        }
-
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
-            this.key_triggered_button("Change Colors", ["c"], this.set_colors);    // Add a button for controlling the scene.
-            this.key_triggered_button("Outline", ["o"], () => {
-
-                // TODO:  Requirement 5b:  Set a flag here that will toggle your outline on and off
-            });
-            this.key_triggered_button("Sit still", ["m"], () => {
-
-                // TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off.
-            });
+            this.key_triggered_button("Energy Level", ["Enter"], () => this.energyBar = () => this.energyBar= !this.energyBar);
+            this.key_triggered_button("Restart", ["R"], () => this.restart = () => this.restart= !this.restart);
+            this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness);
         }
-
-        draw_box(graphics_state, model_transform) {
-            // TODO:  Helper function for requirement 3 (see hint).
-            //        This should make changes to the model_transform matrix, draw the next box, and return the newest model_transform.
-
+    
+        //display the initial scene
+        initial_scene(graphics_state,model_transform){
+            const surfaceColor = Color.of(213/255, 213/255, 213/255, 1), onePointColor = Color.of(7/255, 1, 15/255, 1),
+                twoPointsColor = Color.of(0, 176/255, 6/255, 1), threePointsColor = Color.of(0, 115/255, 4/255, 1);
+            //draw the rectangular surface
+            this.shapes.surface.draw(graphics_state, model_transform, this.plastic.override({color:surfaceColor }));
+            //draw three rectangles on the surface representing points
+            model_transform = Mat4.identity();
+            //draw the rectangular surface
+            //for three points
+            model_transform=Mat4.identity();
+            //1 point
+            this.shapes.points.draw(graphics_state, model_transform, this.plastic.override({color: onePointColor}));
+            model_transform=model_transform.times(Mat4.translation([0,2,0]));
+            //2 points
+            this.shapes.points.draw(graphics_state, model_transform, this.plastic.override({color: twoPointsColor}));
+            model_transform=model_transform.times(Mat4.translation([0,2,0]));
+            //3 points
+            this.shapes.points.draw(graphics_state, model_transform, this.plastic.override({color: threePointsColor}));
             return model_transform;
         }
-
+        //display objects on the screen
         display(graphics_state) {
+            const angleStickTime = this.t = graphics_state.animation_time/300;
+            const energyBarTime = this.t = graphics_state.animation_time/100;
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
-
-            let model_transform = Mat4.identity();
-
-            // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
+            let model_transform =  Mat4.identity();
+            var rotation=0
+            //create the initial scence with the surface of the game
+            model_transform = this.initial_scene( graphics_state, model_transform);
+            //------------------- DRAW  THE ANGLE STICK
+            model_transform= Mat4.identity()
+            //rotation 
+            //TODO
+            //NOTE: NOT SURE HOW TO FIX THE ROTATION WHEN THE USER WANTS TO STOP IT AT A CERTAIN ANGLE
+            rotation= -1 * Math.sin(angleStickTime) 
+            model_transform= model_transform.times( Mat4.rotation( rotation, Vec.of(0, 0, 1 ) ) );
+            this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}))
+            //----------------- Draw Ball: Blue Square ----------------
+            model_transform= Mat4.identity()
+            this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0,0,1,1)}))
+            //--------------- DRAW ENERGY BAR--------------
+            //TODO
+            //NOTE: Only one sofar, with animation we should translate it higher two time and repeat until the user press a button 
+            model_transform= Mat4.identity()
+            //this implementation uses a random number to show a energy bar no animation is being used
+            //I think we should use animation tho
+            if(!this.energyBar){
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
+                model_transform= model_transform.times(Mat4.translation([0,3,0]))
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
+                model_transform= model_transform.times(Mat4.translation([0,3,0]))
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
+            }
+            //if the user pressed 'Energy Level'
+            //A random energy bar would be chosen
+            else{
+                model_transform= model_transform.times(Mat4.translation([0,3*this.randomTranslationFactor,0]))
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
+                //energy level is between 1,3 inclusive
+                const energyLevel= this.randomTranslationFactor+1
+            }
+            
+            
+            
         }
     };
