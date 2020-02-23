@@ -177,10 +177,14 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //------------------- DRAW  THE ANGLE STICK
             model_transform= Mat4.identity()
             //rotation 
-            // ------------ TODO --------
-            //NOTE: NOT SURE HOW TO FIX THE ROTATION WHEN THE USER WANTS TO STOP IT AT A CERTAIN ANGLE
-            // SO WE CAN USE THAT ANGLE FOR TRANSLATION OF THE BALL
-            rotation= -1 * Math.sin(angleStickTime) 
+            if(!this.angleStickStillness){
+                rotation= -1 * Math.sin(angleStickTime) 
+            }
+            else{
+                //----------- TODO ----------
+                 //NOTE: NOT SURE HOW TO FIX THE ROTATION WHEN THE USER WANTS TO STOP IT AT A CERTAIN ANGLE
+                // SO WE CAN USE THAT ANGLE FOR TRANSLATION OF THE BALL
+            }
             model_transform= model_transform.times( Mat4.rotation( rotation, Vec.of(0, 0, 1 ) ) );
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}))
             //--------------- DRAW ENERGY BAR--------------
@@ -202,17 +206,17 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 model_transform= model_transform.times(Mat4.translation([0,3*this.randomTranslationFactor,0]))
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
                 //energy level is between 1,3 inclusive
-                var speed= this.randomTranslationFactor+1
+                var speed = this.randomTranslationFactor+1
             }
             //----------------- Draw Ball: Blue Square ----------------
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
-            // finalLocation.x and finalLocation.y
-            var finalLocation = this.distance_calculator_helper(speed,rotation);
+            // distance.x and distance.y
+            var distance = this.distance_calculator_helper(speed,rotation);
             //use final destination
             //-----------------TODO---------------------------- 
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
-            model_transform = model_transform.times(Mat4.translation([this.initialBallPosX  /*  + final Location of X; doesn't quite worK*/, this.initialBallPosY /*  + final Location of Y; doesn't quite work*/,0]))
+            model_transform = model_transform.times(Mat4.translation([this.initialBallPosX  + distance.x, this.initialBallPosY + distance.y,0]))
             this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0,0,1,1)}))
             
         }
