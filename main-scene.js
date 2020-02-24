@@ -171,21 +171,23 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             const energyBarTime = this.t = graphics_state.animation_time/100;
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
             let model_transform =  Mat4.identity();
-            var rotation=0
+            //set the 
+            var rotationAngle=0
             //create the initial scence with the surface of the game
             model_transform = this.initial_scene( graphics_state, model_transform);
             //------------------- DRAW  THE ANGLE STICK
             model_transform= Mat4.identity()
             //rotation 
             if(!this.angleStickStillness){
-                rotation= -1 * Math.sin(angleStickTime) 
+                
+                rotationAngle= -1 * Math.sin(angleStickTime) 
             }
             else{
                 //----------- TODO ----------
                  //NOTE: NOT SURE HOW TO FIX THE ROTATION WHEN THE USER WANTS TO STOP IT AT A CERTAIN ANGLE
                 // SO WE CAN USE THAT ANGLE FOR TRANSLATION OF THE BALL
             }
-            model_transform= model_transform.times( Mat4.rotation( rotation, Vec.of(0, 0, 1 ) ) );
+            model_transform= model_transform.times( Mat4.rotation( rotationAngle, Vec.of(0, 0, 1 ) ) );
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}))
             //--------------- DRAW ENERGY BAR--------------
             //------------------ TODO----------------
@@ -206,13 +208,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 model_transform= model_transform.times(Mat4.translation([0,3*this.randomTranslationFactor,0]))
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
                 //energy level is between 1,3 inclusive
-                var speed = this.randomTranslationFactor+1
+                //TODO 
+                // DEFINE A BETTER SPEED THAT MAKE A BETTER TRANSLATION FOR THE GIVEN SURFACE
+                var speed = (this.randomTranslationFactor)+1
             }
             //----------------- Draw Ball: Blue Square ----------------
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
             // distance.x and distance.y
-            var distance = this.distance_calculator_helper(speed,rotation);
+            var distance = this.distance_calculator_helper(speed,-30);
             //use final destination
             //-----------------TODO---------------------------- 
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
