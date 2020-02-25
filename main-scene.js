@@ -107,7 +107,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.initialBallPosX= 0;
             this.initialBallPosY=0;
             this.angleStickStillness=false;
-            this.randomTranslationFactor = Math.floor(Math.random()*3)
+            this.randomTranslationFactor = Math.floor(Math.random()*6)
+            this.scaleValue=0;
             // At the beginning of our program, load one of each of these shape
             // definitions onto the GPU.  NOTE:  Only do this ONCE per shape
             // design.  Once you've told the GPU what the design of a cube is,
@@ -194,15 +195,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //NOTE: Only one sofar, with animation we should translate it higher two time and repeat until the user press a button 
             model_transform= Mat4.identity();
             var scaleValue=0;
-            if(!this.energyBarStillness){
-                scaleValue = 3+ 3*Math.sin(energyBarTime)
-            }
+            scaleValue = 3+ 3*Math.sin(energyBarTime);
             let scale = [[1,0,0,0],[0, scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
+
             model_transform = model_transform.times(scale);
             //this implementation uses a random number to show a energy bar no animation is being used
             //I think we should use animation tho
             let color_scale = Math.sin(energyBarTime) * 0.5;
             if(!this.energyBar){
+                this.scaleValue = scaleValue;
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
                 //model_transform= model_transform.times(Mat4.translation([0,3,0]))
                 // this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
@@ -212,8 +213,11 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //if the user pressed 'Energy Level'
             //A random energy bar would be chosen
             else{
-                model_transform= model_transform.times(Mat4.translation([0,3*this.randomTranslationFactor,0]))
-                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,0,0,1)}));
+                let scale = [[1,0,0,0],[0, this.scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
+                model_transform= Mat4.identity().times(scale);
+                let still_color_scale = (this.scaleValue-3)/3 * 0.5;
+
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
                 //energy level is between 1,3 inclusive
                 //TODO 
                 // DEFINE A BETTER SPEED THAT MAKE A BETTER TRANSLATION FOR THE GIVEN SURFACE
