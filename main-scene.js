@@ -130,7 +130,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
-            this.key_triggered_button("Energy Level", ["Enter"], () => this.energyBar = () => this.energyBar= !this.energyBar);
+            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBar = () => this.energyBar= !this.energyBar);
             this.key_triggered_button("Restart", ["R"], () => this.restart = () => this.restart= !this.restart);
             this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness);
         }
@@ -169,7 +169,10 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         display(graphics_state) {
             const angleStickTime = this.t = graphics_state.animation_time/300;
             const energyBarTime = this.t = graphics_state.animation_time/100;
-            graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+            graphics_state.lights = this.lights; 
+            for(var i=0;i<2;i++){
+                
+            }
             let model_transform =  Mat4.identity();
             //set the 
             var rotationAngle=0
@@ -179,8 +182,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             model_transform= Mat4.identity()
             //rotation 
             if(!this.angleStickStillness){
-                
-                rotationAngle= -1 * Math.sin(angleStickTime) 
+                rotationAngle= -1 * Math.sin(angleStickTime)/2 
             }
             else{
                 //----------- TODO ----------
@@ -216,7 +218,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
             // distance.x and distance.y
-            var distance = this.distance_calculator_helper(speed,-30);
+            var distance = this.distance_calculator_helper(speed,rotationAngle);
             //use final destination
             //-----------------TODO---------------------------- 
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
