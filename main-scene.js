@@ -107,8 +107,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.initialBallPosX= 0;
             this.initialBallPosY=0;
             this.angleStickStillness=false;
-            this.randomTranslationFactor = Math.floor(Math.random()*6)
             this.scaleValue=0;
+            this.angleValue=0;
+            this.angleStillTime=0;
             // At the beginning of our program, load one of each of these shape
             // definitions onto the GPU.  NOTE:  Only do this ONCE per shape
             // design.  Once you've told the GPU what the design of a cube is,
@@ -158,9 +159,10 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         //calculating final destination
         distance_calculator_helper(speed,rotation){
-            var kinetic = this.ballMass * Math.pow(speed, 2) / 2,
+            //TODO: animation base on time
+            let kinetic = this.ballMass * Math.pow(speed, 2) / 2,
             distance = kinetic / this.friction / this.ballMass;
-            var finalLocationObject = {
+            let finalLocationObject = {
                 x:  distance * Math.cos(rotation),
                 y:  distance * Math.sin(rotation),
               };
@@ -180,9 +182,12 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             model_transform= Mat4.identity();
             //rotation 
             if(!this.angleStickStillness){
-                rotationAngle= -1 * Math.sin(angleStickTime)/2 
+                rotationAngle= -1 * Math.sin(angleStickTime)/2;
+                this.angleValue = rotationAngle;
+                this.angleStillTime = angleStickTime;
             }
             else{
+                rotationAngle = this.angleValue;
                 //----------- TODO ----------
                  //NOTE: NOT SURE HOW TO FIX THE ROTATION WHEN THE USER WANTS TO STOP IT AT A CERTAIN ANGLE
                 // SO WE CAN USE THAT ANGLE FOR TRANSLATION OF THE BALL
@@ -220,13 +225,17 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 //energy level is between 1,3 inclusive
                 //TODO 
                 // DEFINE A BETTER SPEED THAT MAKE A BETTER TRANSLATION FOR THE GIVEN SURFACE
-                var speed = (this.randomTranslationFactor)+1
+                var speed = (this.scaleValue)+1 //???
             }
             //----------------- Draw Ball: Blue Square ----------------
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
             // distance.x and distance.y
+<<<<<<< HEAD
             var distance = this.distance_calculator_helper(speed,rotationAngle);
+=======
+            var distance = this.distance_calculator_helper(speed,this.angleValue+Math.PI/2);
+>>>>>>> 5b81df7145d3eed0bdf4b88777f9e2279e03bbf1
             //use final destination
             //-----------------TODO---------------------------- 
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
