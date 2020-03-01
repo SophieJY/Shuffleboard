@@ -231,11 +231,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
             // distance.x and distance.y
-<<<<<<< HEAD
-            var distance = this.distance_calculator_helper(speed,rotationAngle);
-=======
             var distance = this.distance_calculator_helper(speed,this.angleValue+Math.PI/2);
->>>>>>> 5b81df7145d3eed0bdf4b88777f9e2279e03bbf1
             //use final destination
             //-----------------TODO---------------------------- 
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
