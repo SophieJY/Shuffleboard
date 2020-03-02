@@ -57,19 +57,19 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             };
             //initial variables
             this.numberOfBalls=4;
-            this.friction= 0.1 + Math.random() / 7;
+            this.friction= 0.8;
             this.length=20;
             this.width=10;
-            this.ballMass=0.5;
             this.score={}
             this.restart=false;
-            this.energyBar=false;
+            this.energyBarStill=false;
             this.initialBallPosX= 0;
             this.initialBallPosZ=14;
             this.angleStickStillness=false;
             this.scaleValue=0;
             this.angleValue=0;
-            this.angleStillTime=0;
+            this.animationStartTime=0;
+            this.distanceTraveled=0;
             // At the beginning of our program, load one of each of these shape
             // definitions onto the GPU.  NOTE:  Only do this ONCE per shape
             // design.  Once you've told the GPU what the design of a cube is,
@@ -92,7 +92,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
-            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBar = () => this.energyBar= !this.energyBar);
+            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBarStill = () => this.energyBarStill= !this.energyBarStill);
             this.key_triggered_button("Restart", ["R"], () => this.restart = () => this.restart= !this.restart);
             this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness);
         }
@@ -119,10 +119,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             return model_transform
         }
         //calculating final destination
-        distance_calculator_helper(speed,rotation){
-            //TODO: animation base on time
-            let kinetic = this.ballMass * Math.pow(speed, 2) / 2,
-            distance = kinetic / this.friction / this.ballMass;
+        distance_calculator_helper(distance,rotation){
             let finalLocationObject = {
                 x:  distance * Math.cos(rotation),
                 y:  distance * Math.sin(rotation),
@@ -145,7 +142,6 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             if(!this.angleStickStillness){
                 rotationAngle= -1 * Math.sin(angleStickTime)/3;
                 this.angleValue = rotationAngle;
-                this.angleStillTime = angleStickTime;
             }
             //Fix the rotation
             else{
@@ -162,9 +158,10 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             model_transform = model_transform.times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
             //Animate the the Energy Bar until the user presses 'Enter'
             let color_scale = Math.sin(energyBarTime) * 0.5;
-            if(!this.energyBar){
+            if(!this.energyBarStill){
                 this.scaleValue = scaleValue;
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
+                this.animationStartTime = graphics_state.animation_time/1000;
             }
             //Fix the Energy Bar after the user pressed the enter
             else{
@@ -175,19 +172,26 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
                 //TODO 
                 // DEFINE A BETTER SPEED THAT MAKE A BETTER TRANSLATION FOR THE GIVEN SURFACE
-                var speed = (this.scaleValue)+1 //???
+                var speed = (this.scaleValue)+3 //???
             }
             //----------------- Draw Ball: Blue Square ----------------
             model_transform= Mat4.identity()
             //calculating distance. returning an object for X and Y position 
             // distance.x and distance.y
-            var distance = this.distance_calculator_helper(speed,this.angleValue+Math.PI/2);
+
+            //vf = vi + at
+            let timeTraveled = speed/this.friction;
+            if (graphics_state.animation_time/1000 - this.animationStartTime < timeTraveled) {
+                this.distanceTraveled = speed * (graphics_state.animation_time / 1000 - this.animationStartTime) - 1 / 2 * this.friction * (graphics_state.animation_time / 1000 - this.animationStartTime) * (graphics_state.animation_time / 1000 - this.animationStartTime);
+            }
+            var distance = this.distance_calculator_helper(this.distanceTraveled, this.angleValue + Math.PI / 2);
             //use final destination
-            //-----------------TODO---------------------------- 
+            //-----------------TODO----------------------------
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
             //the ball works based on the surface cordinates
-            model_transform = model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.translation([this.initialBallPosX+distance.x, 2 ,this.initialBallPosZ - distance.y]))
-            this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0,0,1,1)}))
-            
+            model_transform = model_transform.times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0))).times(Mat4.translation([this.initialBallPosX + distance.x, 2, this.initialBallPosZ - distance.y]));
+            if(this.energyBarStill) {
+                this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0, 0, 1, 1)}))
+            }
         }
     };
