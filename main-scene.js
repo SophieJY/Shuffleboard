@@ -30,7 +30,7 @@ window.Angle_Stick = window.classes.Angle_Stick =
             super("positions", "normals");   
                                             // Name the values we'll define per each vertex.
                                             //order of corners: bottm left,right and upper left, right
-            this.positions.push(...Vec.cast([-0.1, 0, 1.5], [0.1, 0, 1.5], [-0.1, 3, 1.5], [0.1, 3, 1.5]));   // Specify the 4 square corner locations.
+            this.positions.push(...Vec.cast([-0.05, 0, 1.5], [0.05, 0, 1.5], [-0.01, 2, 1.5], [0.01, 2, 1.5]));   // Specify the 4 square corner locations.
             this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
             //this.texture_coords.push(...Vec.cast([0, 0], [1, 0], [0, 1], [1, 1]));   // Draw a square in texture coordinates too.
             this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
@@ -46,7 +46,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
             const r = context.width / context.height;
-            context.globals.graphics_state.camera_transform = Mat4.translation([5, -10, -60]);  // Locate the camera here (inverted matrix).
+            context.globals.graphics_state.camera_transform = Mat4.translation([2.5, -10, -60]);  // Locate the camera here (inverted matrix).
             context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
             //Adding shapes on the screen
             const shapes = {
@@ -140,7 +140,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // model_transform= Mat4.identity();
             //rotation 
             if(!this.angleStickStillness){
-                rotationAngle= -1 * Math.sin(angleStickTime)/3;
+                rotationAngle= -1 * Math.sin(angleStickTime)/4;
                 this.angleValue = rotationAngle;
             }
             //Fix the rotation
@@ -148,7 +148,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 rotationAngle = this.angleValue;
             }
             //draw the angle stick based on the surface cordinates
-            model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)))
+            model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)))
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}))
             //--------------- DRAW ENERGY BAR--------------
             model_transform= Mat4.identity();
