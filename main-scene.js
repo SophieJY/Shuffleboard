@@ -172,7 +172,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
                 //TODO 
                 // DEFINE A BETTER SPEED THAT MAKE A BETTER TRANSLATION FOR THE GIVEN SURFACE
-                var speed = (this.scaleValue)+3 //???
+                var speed = this.scaleValue+3;
             }
             //----------------- Draw Ball: Blue Square ----------------
             model_transform= Mat4.identity()
@@ -184,7 +184,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             if (graphics_state.animation_time/1000 - this.animationStartTime < timeTraveled) {
                 this.distanceTraveled = speed * (graphics_state.animation_time / 1000 - this.animationStartTime) - 1 / 2 * this.friction * (graphics_state.animation_time / 1000 - this.animationStartTime) * (graphics_state.animation_time / 1000 - this.animationStartTime);
             }
-            var distance = this.distance_calculator_helper(this.distanceTraveled, this.angleValue + Math.PI / 2);
+            let distance = this.distance_calculator_helper(this.distanceTraveled, this.angleValue + Math.PI / 2);
             //use final destination
             //-----------------TODO----------------------------
             //BALL TRANSFORMATION USING THE FINAL LOCATION DOESN'T WORK NOW
@@ -195,3 +195,6 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }
         }
     };
+
+
+///Class Ball, vec3(, , ,) (Position pos_vec) (Velocity vel_vec) ......
