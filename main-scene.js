@@ -51,9 +51,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //Adding shapes on the screen
             const shapes = {
                 'surface': new Cube(),
-                'ball': new Cube(),
+                'ball': new Subdivision_Sphere(4),
                 'energyBar': new Cube(),
-                'angleLine': new Angle_Stick()
+                'angleLine': new Angle_Stick(),
             };
             //initial variables
             this.numberOfBalls=4;
@@ -78,7 +78,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // multiple cubes.  Don't define more than one blueprint for the
             // same thing here.
             this.submit_shapes(context, shapes);
-
+            this.materials={
+                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+            }
             // Make some Material objects available to you:
             this.clay = context.get_instance(Phong_Shader).material(Color.of(.9, .5, .9, 1), {
                 ambient: .4,
@@ -191,10 +193,37 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //the ball works based on the surface cordinates
             model_transform = model_transform.times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0))).times(Mat4.translation([this.initialBallPosX + distance.x, 2, this.initialBallPosZ - distance.y]));
             if(this.energyBarStill) {
-                this.shapes.ball.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0, 0, 1, 1)}))
+                this.shapes.ball.draw(graphics_state, model_transform, this.materials.ball1)
             }
         }
     };
+    class Texture_Rotate extends Phong_Shader
+    { fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
+        {
+          // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
+          return `
+            uniform sampler2D texture;
+            void main()
+            { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
+              { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
+                return;
+              }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
+                                                // Phong shading is not to be confused with the Phong Reflection Model.
+              vec2 mVector = f_tex_coord; 
+              mat4 mMatrix = mat4(cos( mod((6.28) * .25 * animation_time, 44. * 3.14)), sin( mod((6.28) * .25 * animation_time, 44. * 3.14)), 0, 0, -sin( mod((6.28) * .25 * animation_time, 44. * 3.14)), cos( mod((6.28) * .25 * animation_time, 44. * 3.14)), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+              vec4 tempVector = vec4(mVector, 0, 0); 
+              tempVector = tempVector + vec4(-.5, -.5, 0., 0.);
+              tempVector = mMatrix * tempVector; 
+              tempVector = tempVector + vec4(.5, .5, 0., 0.);
+              
+              vec4 tex_color = texture2D( texture, tempVector.xy );                         // Sample the texture image in the correct place.
+                                                                                          // Compute an initial (ambient) color:
+              if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
+              else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+              gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
+            }`;
+        }
+    }
 
 
 ///Class Ball, vec3(, , ,) (Position pos_vec) (Velocity vel_vec) ......
