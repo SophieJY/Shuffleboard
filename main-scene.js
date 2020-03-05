@@ -1,3 +1,21 @@
+class Ball {
+    constructor(player1or2) {
+        this.init_pos_vec = Vec.of(0,2,14);
+        this.pos_vec = Vec.of(0,2,14);
+        this.vel_vec = Vec.of(0,0,0);
+        this.player = player1or2;
+        this.existence = false;
+        this.init_speed = 0;
+        this.animationStartTime = 0;
+    }
+    init_pos_vec;
+    pos_vec;
+    vel_vec;
+    player;
+    existence;
+    init_speed;
+    animationStartTime;
+}
 window.Cube = window.classes.Cube =
 class Cube extends Shape
 { constructor()
@@ -57,24 +75,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 'angleLine': new Angle_Stick(),
             };
 
-            class Ball {
-                constructor(player1or2) {
-                    this.init_pos_vec = Vec.of(0,2,14);
-                    this.pos_vec = Vec.of(0,2,14);
-                    this.vel_vec = Vec.of(0,0,0);
-                    this.player = player1or2;
-                    this.existence = false;
-                    this.init_speed = 0;
-                    this.animationStartTime = 0;
-                }
-                init_pos_vec;
-                pos_vec;
-                vel_vec;
-                player;
-                existence;
-                init_speed;
-                animationStartTime;
-            }
+            
             //initial variables
             this.numberOfBalls=6;
             this.currentBall=0;
@@ -112,12 +113,21 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.lights = [new Light(Vec.of(0, 5, 5, 1), Color.of(1, .4, 1, 1), 100000)];
         
         }
+        //RESET THE GAME
+        reset(){
+            delete this.ballArray
+            this.ballArray = [new Ball(1), new Ball(2), new Ball(1), new Ball(2), new Ball(1), new Ball(2)];
+            this.energyBarStill = false;
+            this.angleStickStillness=false;
+            this.numberOfBalls=6;
+        }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
             this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBarStill = () => this.energyBarStill= !this.energyBarStill);
-            this.key_triggered_button("Restart", ["R"], () => this.restart = () => this.restart= !this.restart);
+            this.key_triggered_button("Restart", ["R"], this.reset);
             this.key_triggered_button("Switch Player", ["s"], () => {
                 this.energyBarStill = false;
+                this.angleStickStillness=false;
                 if (this.currentBall < this.numberOfBalls) {
                     this.currentBall += 1;
                 }
@@ -211,7 +221,16 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             if(!this.energyBarStill){
                 this.scaleValue = scaleValue;
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
-                this.ballArray[this.currentBall].animationStartTime = graphics_state.animation_time/1000;
+                //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
+                if(this.currentBall>5){
+                    //TO DO
+                    //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
+                    //FOR NOW
+                    this.reset()
+                }
+                else{
+                    this.ballArray[this.currentBall].animationStartTime = graphics_state.animation_time/1000;
+                }
             }
             //Fix the Energy Bar after the user pressed the enter
             else{
@@ -226,41 +245,53 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
 
             //update position vector based on speed and animation start time
             //vf = vi + at
-            let timeTraveled = this.ballArray[this.currentBall].init_speed/this.friction;
-            if (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime < timeTraveled) {
-                this.ballArray[this.currentBall].pos_vec = this.update_pos(graphics_state);
-                //console.log(this.ballArray[this.currentBall].pos_vec);
-                this.ballArray[this.currentBall].vel_vec = this.update_vel(graphics_state);
+            //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
+            if(this.currentBall>5){
+                //TO DO
+                //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
+                //FOR NOW
+                this.reset()
             }
-
-            if(this.energyBarStill) {
-                //make the current ball visible
-                this.ballArray[this.currentBall].existence = true;
-            }
-
-            //iterate through the ball array and draw each existing balls
-            for(let i = 0; i < this.numberOfBalls; i++) {
-                let curr_ball = this.ballArray[i];
-
-                //set color based on player
-                let curr_color;
-                if (curr_ball.player === 1) {
-                    curr_color = Color.of(0, 0, 1, 1);
-                } else {
-                    curr_color = Color.of(1, 0, 0, 1);
+            //IF THERE ARE BALLS LEFT OVER
+            else{
+                let timeTraveled = this.ballArray[this.currentBall].init_speed/this.friction;
+                if (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime < timeTraveled) {
+                    this.ballArray[this.currentBall].pos_vec = this.update_pos(graphics_state);
+                    //console.log(this.ballArray[this.currentBall].pos_vec);
+                    this.ballArray[this.currentBall].vel_vec = this.update_vel(graphics_state);
                 }
 
-                //draw the balls based on their existence
-                if (curr_ball.existence) {
-                    //console.log(curr_ball.pos_vec[0]);
-                    model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
-                        .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
-                    this.shapes.ball.draw(graphics_state, model_transform, this.materials.ball1);
+                if(this.energyBarStill) {
+                    //make the current ball visible
+                    this.ballArray[this.currentBall].existence = true;
+                }
+
+                //iterate through the ball array and draw each existing balls
+                for(let i = 0; i < this.numberOfBalls; i++) {
+                    let curr_ball = this.ballArray[i];
+
+                    //set color based on player
+                    let curr_color;
+                    if (curr_ball.player === 1) {
+                        curr_color = Color.of(0, 0, 1, 1);
+                    } else {
+                        curr_color = Color.of(1, 0, 0, 1);
+                    }
+
+                    //draw the balls based on their existence
+                    if (curr_ball.existence) {
+                        //console.log(curr_ball.pos_vec[0]);
+                        model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
+                            .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
+                        this.shapes.ball.draw(graphics_state, model_transform, this.materials.ball1);
+                    }
                 }
             }
+            
 
         }
     };
+    //FOR THE BALL TEXTURE
     class Texture_Rotate extends Phong_Shader
     { fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
         {
