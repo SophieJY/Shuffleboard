@@ -120,6 +120,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.energyBarStill = false;
             this.angleStickStillness=false;
             this.numberOfBalls=6;
+            this.currentBall=0;
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
