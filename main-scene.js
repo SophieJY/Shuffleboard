@@ -100,7 +100,12 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // same thing here.
             this.submit_shapes(context, shapes);
             this.materials={
-                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                //red ball
+                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) }),
+                //blue ball
+                ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                energyBar_material:  context.get_instance( Phong_Shader ).material( Color.of( 40/255, 60/255, 80/255, 1), {ambient: 0}, {diffusivity: 1}, {specularity: 0}, {smoothness: 1} ),
+                surface_materrial: context.get_instance( Phong_Shader ).material( Color.of( 1 ,0, 1 ,1 ), { ambient: 1 } ),
             };
             // Make some Material objects available to you:
             this.clay = context.get_instance(Phong_Shader).material(Color.of(.9, .5, .9, 1), {
@@ -125,15 +130,16 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
             this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBarStill = () => this.energyBarStill= !this.energyBarStill);
-            this.key_triggered_button("Restart", ["R"], this.reset);
-            this.key_triggered_button("Switch Player", ["s"], () => {
+            this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness);
+            this.key_triggered_button("Switch Player", ["S"], () => {
                 this.energyBarStill = false;
                 this.angleStickStillness=false;
                 if (this.currentBall < this.numberOfBalls) {
                     this.currentBall += 1;
                 }
             });
-            this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness);
+            this.key_triggered_button("Restart", ["R"], this.reset); this.new_line();
+            this.key_triggered_button( "Attach to Angle-Stcik",     [ "Space" ], () => this.attached = () => this.angle_attach     );
         }
         //display the initial scene
         initial_scene(graphics_state,model_transform){
@@ -141,20 +147,20 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 twoPointsColor = Color.of(0, 176/255, 6/255, 1), threePointsColor = Color.of(0, 115/255, 4/255, 1);
             //draw the rectangular-cube with rotation of Math.PI/8 arounf x-axis  surface
             model_transform= model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.scale([7,1,14]));
-            this.shapes.surface.draw(graphics_state, model_transform, this.plastic.override({color:surfaceColor }));
+            this.shapes.surface.draw(graphics_state, model_transform, this.materials.surface_materrial.override({color:surfaceColor }));
             //draw three rectangles on the surface representing points
             //draw the rectangular surface
             //for three points
             model_transform=Mat4.identity();
             //1 point
             model_transform= model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.scale([7,1,2])).times(Mat4.translation([0,0,-8]));
-            this.shapes.surface.draw(graphics_state, model_transform, this.plastic.override({color: onePointColor}));
+            this.shapes.surface.draw(graphics_state, model_transform, this.materials.surface_materrial.override({color: onePointColor}));
             model_transform=model_transform.times(Mat4.translation([0,0,-2]));
             //2 points
-            this.shapes.surface.draw(graphics_state, model_transform, this.plastic.override({color: twoPointsColor}));
+            this.shapes.surface.draw(graphics_state, model_transform, this.materials.surface_materrial.override({color: twoPointsColor}));
             model_transform=model_transform.times(Mat4.translation([0,0,-2]));
             //3 points
-            this.shapes.surface.draw(graphics_state, model_transform, this.plastic.override({color: threePointsColor}));
+            this.shapes.surface.draw(graphics_state, model_transform, this.materials.surface_materrial.override({color: threePointsColor}));
             return model_transform
         }
         //calculating final destination
@@ -188,7 +194,13 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //console.log("y:" +velocityVector.y);
             return Vec.of(velocityVector.x, 0, -velocityVector.y );
         }
-
+        //helper function to ensure that the ball is on the surface
+        ball_on_the_surface(pos){
+            if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]>-26 && pos[2]<14.5){
+                return true
+            }
+            return false
+        }
         //display objects on the screen
         display(graphics_state) {
             const angleStickTime = graphics_state.animation_time/300;
@@ -210,7 +222,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //draw the angle stick based on the surface cordinates
             model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)));
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}));
-
+            this.angle_attach= model_transform
             //--------------- DRAW ENERGY BAR--------------
             model_transform= Mat4.identity();
             let scaleValue;
@@ -221,7 +233,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             let color_scale = Math.sin(energyBarTime) * 0.5;
             if(!this.energyBarStill){
                 this.scaleValue = scaleValue;
-                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
+                this.shapes.energyBar.draw(graphics_state, model_transform, this.materials.energyBar_material.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
                 //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
                 if(this.currentBall>5){
                     //TO DO
@@ -261,7 +273,6 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                     //console.log(this.ballArray[this.currentBall].pos_vec);
                     this.ballArray[this.currentBall].vel_vec = this.update_vel(graphics_state);
                 }
-
                 if(this.energyBarStill) {
                     //make the current ball visible
                     this.ballArray[this.currentBall].existence = true;
@@ -269,26 +280,28 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
 
                 //iterate through the ball array and draw each existing balls
                 for(let i = 0; i < this.numberOfBalls; i++) {
-                    let curr_ball = this.ballArray[i];
-
-                    //set color based on player
-                    let curr_color;
-                    if (curr_ball.player === 1) {
-                        curr_color = Color.of(0, 0, 1, 1);
-                    } else {
-                        curr_color = Color.of(1, 0, 0, 1);
-                    }
-
+                    let curr_ball = this.ballArray[i];  
                     //draw the balls based on their existence
                     if (curr_ball.existence) {
-                        //console.log(curr_ball.pos_vec[0]);
-                        model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
-                            .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
-                        this.shapes.ball.draw(graphics_state, model_transform, this.materials.ball1);
+
+                        if( this.ball_on_the_surface(curr_ball.pos_vec)){
+                            //console.log(curr_ball.pos_vec[0]);
+                            model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
+                                .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
+                            this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
+                        }
+        
+                        
                     }
+                    
                 }
             }
-            
+            //attached function
+            if(this.attached != undefined) {
+                var desired = Mat4.inverse(this.attached().times(Mat4.translation([0,-2,2]).times(Mat4.rotation(Math.PI/2,Vec.of(1,0,0)))));
+                desired = desired.map((x, i) => Vec.from( graphics_state.camera_transform[i]).mix(x, .1));
+                graphics_state.camera_transform = desired;
+              }
 
         }
     };
