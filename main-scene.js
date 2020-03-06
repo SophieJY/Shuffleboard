@@ -89,6 +89,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.angleStickStillness=false;
             this.scaleValue=0;
             this.angleValue=0;
+            this.cameraViewNormal = true;
 
             this.ballArray =
                 [new Ball(1), new Ball(2), new Ball(1), new Ball(2), new Ball(1), new Ball(2)];
@@ -121,7 +122,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         //RESET THE GAME
         reset(){
-            delete this.ballArray
+            delete this.ballArray;
             this.ballArray = [new Ball(1), new Ball(2), new Ball(1), new Ball(2), new Ball(1), new Ball(2)];
             this.energyBarStill = false;
             this.angleStickStillness=false;
@@ -140,9 +141,14 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 }
             });
             this.key_triggered_button("Restart", ["R"], this.reset); this.new_line();
-            this.key_triggered_button( "Attach to Angle-Stcik",     [ "Space" ], () => this.attached = () => this.angle_attach     );
-            this.key_triggered_button( "Normal View",  [ "V" ], () => this.attached = () => this.initial_camera_location );
-
+            this.key_triggered_button( "Attach to Angle-Stcik",     [ "Space" ], () => {
+                this.attached = () => this.angle_attach;
+                this.cameraViewNormal = false;
+            } );
+            this.key_triggered_button( "Normal View",  [ "V" ], () => {
+                this.attached = () => this.initial_camera_location;
+                this.cameraViewNormal = true;
+            } );
         }
         //display the initial scene
         initial_scene(graphics_state,model_transform){
@@ -225,7 +231,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //draw the angle stick based on the surface cordinates
             model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)));
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}));
-            this.angle_attach= model_transform
+            this.angle_attach= model_transform;
             //--------------- DRAW ENERGY BAR--------------
             model_transform= Mat4.identity();
             let scaleValue;
@@ -301,11 +307,16 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }
             //attached function
             if(this.attached != undefined) {
-                var desired = Mat4.inverse(this.attached().times(Mat4.translation([0,-2,2]).times(Mat4.rotation(Math.PI/2,Vec.of(1,0,0)))));
-                desired = desired.map((x, i) => Vec.from( graphics_state.camera_transform[i]).mix(x, .1));
-                graphics_state.camera_transform = desired;
+                if(!this.cameraViewNormal) {
+                    var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, -2, 2]).times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))));
+                    desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+                    graphics_state.camera_transform = desired;
+                } else {
+                    var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 0, 0])));
+                    desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+                    graphics_state.camera_transform = desired;
+                }
               }
-
         }
     };
     //FOR THE BALL TEXTURE
