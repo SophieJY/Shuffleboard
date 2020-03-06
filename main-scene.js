@@ -65,7 +65,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
             const r = context.width / context.height;
-            context.globals.graphics_state.camera_transform = Mat4.translation([2.5, -10, -60]);  // Locate the camera here (inverted matrix).
+            context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,40 ), Vec.of( 0,2,0 ), Vec.of( 0,5,0 ) ); // Locate the camera here (inverted matrix).
+            this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );
             context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
             //Adding shapes on the screen
             const shapes = {
@@ -140,6 +141,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             });
             this.key_triggered_button("Restart", ["R"], this.reset); this.new_line();
             this.key_triggered_button( "Attach to Angle-Stcik",     [ "Space" ], () => this.attached = () => this.angle_attach     );
+            this.key_triggered_button( "Normal View",  [ "V" ], () => this.attached = () => this.initial_camera_location );
+
         }
         //display the initial scene
         initial_scene(graphics_state,model_transform){
