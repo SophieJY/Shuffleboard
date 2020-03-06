@@ -66,8 +66,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
 
             const r = context.width / context.height;
             context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,40 ), Vec.of( 0,2,0 ), Vec.of( 0,5,0 ) ); // Locate the camera here (inverted matrix).
-            this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );
-            context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
+            this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );            context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
             //Adding shapes on the screen
             const shapes = {
                 'surface': new Cube(),
