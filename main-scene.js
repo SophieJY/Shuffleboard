@@ -6,7 +6,12 @@ class Ball {
         this.player = player1or2;
         this.existence = false;
         this.init_speed = 0;
+        this.angle_vector = Vec.of(0,0,0);
+        this.init_angle = 
         this.animationStartTime = 0;
+    }
+    update_vector_effect() {
+        this.init_speed = Math.sqrt(Math.pow(this.vel_vec[0],2) + Math.pow(this.vel_vec[1],2) + Math.pow(this.vel_vec[2],2));
     }
     init_pos_vec;
     pos_vec;
@@ -89,6 +94,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.scaleValue=0;
             this.angleValue=0;
             this.cameraViewNormal = true;
+            
+            //erase
+            this.first_frame = true;
 
             this.ballArray =
                 [new Ball(1), new Ball(2), new Ball(1), new Ball(2), new Ball(1), new Ball(2)];
@@ -194,12 +202,34 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             return Vec.of(this.ballArray[this.currentBall].init_pos_vec[0] + distanceVector.x, 2, this.ballArray[this.currentBall].init_pos_vec[2] - distanceVector.y );
         }
 
+        //update_pos updated
+        update_pos_mod (graphics_state,i) {
+            const dt = 0.05
+            // let distanceTraveled = this.ballArray[i].init_speed * (graphics_state.animation_time / 1000 - this.ballArray[i].animationStartTime)
+            //     - 1 / 2 * this.friction * (graphics_state.animation_time / 1000 - this.ballArray[i].animationStartTime) * (graphics_state.animation_time / 1000 - this.ballArray[i].animationStartTime);
+            // let distanceVector = this.value_to_vector(distanceTraveled, this.angleValue + Math.PI / 2);
+            // let angle = Math.atan(this.ballArray[i].pos_vec[0]/this.ballArray[i].pos_vec[1]);
+            // return Vec.of(this.ballArray[i].init_pos_vec[0] + distanceVector.x, 2, this.ballArray[i].init_pos_vec[2] - distanceVector.y );
+            return Vec.of(this.ballArray[i].pos_vec[0] + this.ballArray[i].vel_vec[0]*dt, this.ballArray[i].pos_vec[1] + this.ballArray[i].vel_vec[1]*dt, this.ballArray[i].pos_vec[2] + this.ballArray[i].vel_vec[2]*dt);
+        }
+
         //update velocity vector
         update_vel (graphics_state) {
             let currentSpeed = this.ballArray[this.currentBall].init_speed - this.friction * (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime);
             let velocityVector = this.value_to_vector(currentSpeed, this.angleValue + Math.PI / 2);
             //console.log("x:" + velocityVector.x);
             //console.log("y:" +velocityVector.y);
+            return Vec.of(velocityVector.x, 0, -velocityVector.y );
+        }   
+        
+        //update velocity updated
+        update_vel_mod (graphics_state,i) {
+            // let currentSpeed = this.ballArray[i].init_speed - this.friction * (graphics_state.animation_time/1000 - this.ballArray[i].animationStartTime);
+            const dt = 0.01
+            let currentSpeed = this.ballArray[i].init_speed - this.friction * dt;
+            let velocityVector = this.value_to_vector(currentSpeed, this.angleValue + Math.PI / 2);
+            
+
             return Vec.of(velocityVector.x, 0, -velocityVector.y );
         }
         //helper function to ensure that the ball is on the surface
@@ -209,113 +239,157 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }
             return false
         }
+
+        check_collision_zplane(ball1, ball2) {
+            const dist_between = Math.sqrt((ball1.pos_vec[0] - ball2.pos_vec[0])^2 + (ball1.pos_vec[1] - ball2.pos_vec[1])^2+ (ball1.pos_vec[2] - ball2.pos_vec[2])^2);
+            if(dis_between < 2) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         //display objects on the screen
         display(graphics_state) {
+
             const angleStickTime = graphics_state.animation_time/300;
             const energyBarTime = graphics_state.animation_time/200;
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
             let model_transform =  Mat4.identity();
-
-            let rotationAngle;
-            //create the initial scene with the surface of the game
             model_transform = this.initial_scene( graphics_state, model_transform);
-            //------------------- DRAW  THE ANGLE STICK ---------
-            //rotation 
-            if(!this.angleStickStillness){
-                rotationAngle= -1 * Math.sin(angleStickTime)/4;
-                this.angleValue = rotationAngle;
-            } else{
-                rotationAngle = this.angleValue;
-            }
-            //draw the angle stick based on the surface cordinates
-            model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)));
-            this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}));
-            this.angle_attach= model_transform;
-            //--------------- DRAW ENERGY BAR--------------
-            model_transform= Mat4.identity();
-            let scaleValue;
-            scaleValue = 3+ 3*Math.sin(energyBarTime);
-            let scale = [[1,0,0,0],[0, scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
-            model_transform = model_transform.times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
-            //Animate the the Energy Bar until the user presses 'Enter'
-            let color_scale = Math.sin(energyBarTime) * 0.5;
-            if(!this.energyBarStill){
-                this.scaleValue = scaleValue;
-                this.shapes.energyBar.draw(graphics_state, model_transform, this.materials.energyBar_material.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
-                //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
-                if(this.currentBall>5){
-                    //TO DO
-                    //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
-                    //FOR NOW
-                    this.reset()
-                }
-                else{
-                    this.ballArray[this.currentBall].animationStartTime = graphics_state.animation_time/1000;
+
+            //TEST STATION/////////////////////////////////////////////////////////////////////////
+            
+            const speed_thresh = 0.1;
+            if(this.first_frame){
+                const initial_ball_pos = [15,-4]
+                const initial_ball_vel = [3,3];
+                this.first_frame = false;
+                for(let i = 0; i < 2; i++) {
+                    this.ballArray[i].pos_vec = Vec.of(0,6,initial_ball_pos[i]);
+                    this.ballArray[i].vel_vec = Vec.of(0,0,initial_ball_vel[i]);
+                    this.ballArray[i].update_vector_effect();
+                    console.log(this.ballArray[i].init_speed);
                 }
             }
-            //Fix the Energy Bar after the user pressed the enter
-            else{
-                let scale = [[1,0,0,0],[0, this.scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
-                model_transform= Mat4.identity().times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
-                let still_color_scale = (this.scaleValue-3)/3 * 0.5;
-
-                this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
-                this.ballArray[this.currentBall].init_speed = this.scaleValue+3;
-            }
-            //----------------- Draw Ball ----------------
-
-            //update position vector based on speed and animation start time
-            //vf = vi + at
-            //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
-            if(this.currentBall>5){
-                //TO DO
-                //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
-                //FOR NOW
-                this.reset()
-            }
-            //IF THERE ARE BALLS LEFT OVER
-            else{
-                let timeTraveled = this.ballArray[this.currentBall].init_speed/this.friction;
-                if (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime < timeTraveled) {
-                    this.ballArray[this.currentBall].pos_vec = this.update_pos(graphics_state);
-                    //console.log(this.ballArray[this.currentBall].pos_vec);
-                    this.ballArray[this.currentBall].vel_vec = this.update_vel(graphics_state);
+            //iterate through the ball array and draw each existing balls
+            for(let i = 0; i < 2; i++) {
+                if (this.ballArray[i].init_speed > speed_thresh) {
+                    // console.log("here",i)
+                    this.ballArray[i].pos_vec = this.update_pos_mod(graphics_state, i);
+                    this.ballArray[i].vel_vec = this.update_vel_mod(graphics_state, i);
+                    this.ballArray[i].update_vector_effect();
                 }
-                if(this.energyBarStill) {
-                    //make the current ball visible
-                    this.ballArray[this.currentBall].existence = true;
-                }
+                // console.log(this.ballArray[i].pos_vec[0], ',', this.ballArray[i].pos_vec[1], ',', this.ballArray[i].pos_vec[2] )
+                let curr_ball = this.ballArray[i];
+                model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
+                    .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
+                this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
+            }
 
-                //iterate through the ball array and draw each existing balls
-                for(let i = 0; i < this.numberOfBalls; i++) {
-                    let curr_ball = this.ballArray[i];  
-                    //draw the balls based on their existence
-                    if (curr_ball.existence) {
 
-                        if( this.ball_on_the_surface(curr_ball.pos_vec)){
-                            //console.log(curr_ball.pos_vec[0]);
-                            model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
-                                .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
-                            this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
-                        }
+            //TEST STATION-end///////////////////////////////////////////////////////////////////////////
+
+
+            // let rotationAngle;
+            //create the initial scene with the surface of the game
+            // // //------------------- DRAW  THE ANGLE STICK ---------
+            // //rotation 
+            // if(!this.angleStickStillness){
+            //     rotationAngle= -1 * Math.sin(angleStickTime)/4;
+            //     this.angleValue = rotationAngle;
+            // } else{
+            //     rotationAngle = this.angleValue;
+            // }
+            // //draw the angle stick based on the surface cordinates
+            // model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(rotationAngle,Vec.of(0,0,1)));
+            // this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}));
+            // this.angle_attach= model_transform;
+            // //--------------- DRAW ENERGY BAR--------------
+            // model_transform= Mat4.identity();
+            // let scaleValue;
+            // scaleValue = 3+ 3*Math.sin(energyBarTime);
+            // let scale = [[1,0,0,0],[0, scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
+            // model_transform = model_transform.times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
+            // //Animate the the Energy Bar until the user presses 'Enter'
+            // let color_scale = Math.sin(energyBarTime) * 0.5;
+            // if(!this.energyBarStill){
+            //     this.scaleValue = scaleValue;
+            //     this.shapes.energyBar.draw(graphics_state, model_transform, this.materials.energyBar_material.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
+            //     //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
+            //     if(this.currentBall>5){
+            //         //TO DO
+            //         //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
+            //         //FOR NOW
+            //         this.reset()
+            //     }
+            //     else{
+            //         this.ballArray[this.currentBall].animationStartTime = graphics_state.animation_time/1000;
+            //     }
+            // }
+            // //Fix the Energy Bar after the user pressed the enter
+            // else{
+            //     let scale = [[1,0,0,0],[0, this.scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
+            //     model_transform= Mat4.identity().times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
+            //     let still_color_scale = (this.scaleValue-3)/3 * 0.5;
+
+            //     this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
+            //     this.ballArray[this.currentBall].init_speed = this.scaleValue+3;
+            // }
+            // //----------------- Draw Ball ----------------
+
+            // //update position vector based on speed and animation start time
+            // //vf = vi + at
+            // //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
+            // if(this.currentBall>5){
+            //     //TO DO
+            //     //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
+            //     //FOR NOW
+            //     this.reset()
+            // }
+            // //IF THERE ARE BALLS LEFT OVER
+            // else{
+            //     let timeTraveled = this.ballArray[this.currentBall].init_speed/this.friction;
+            //     if (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime < timeTraveled) {
+            //         this.ballArray[this.currentBall].pos_vec = this.update_pos(graphics_state);
+            //         //console.log(this.ballArray[this.currentBall].pos_vec);
+            //         this.ballArray[this.currentBall].vel_vec = this.update_vel(graphics_state);
+            //     }
+            //     if(this.energyBarStill) {
+            //         //make the current ball visible
+            //         this.ballArray[this.currentBall].existence = true;
+            //     }
+
+            //     //iterate through the ball array and draw each existing balls
+            //     for(let i = 0; i < this.numberOfBalls; i++) {
+            //         let curr_ball = this.ballArray[i];  
+            //         //draw the balls based on their existence
+            //         if (curr_ball.existence) {
+
+            //             if( this.ball_on_the_surface(curr_ball.pos_vec)){
+            //                 //console.log(curr_ball.pos_vec[0]);
+            //                 model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
+            //                     .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
+            //                 this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
+            //             }
         
                         
-                    }
+            //         }
                     
-                }
-            }
-            //attached function
-            if(this.attached != undefined) {
-                if(!this.cameraViewNormal) {
-                    var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, -2, 2]).times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))));
-                    desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
-                    graphics_state.camera_transform = desired;
-                } else {
-                    var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 0, 0])));
-                    desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
-                    graphics_state.camera_transform = desired;
-                }
-              }
+            //     }
+            // }
+            // //attached function
+            // if(this.attached != undefined) {
+            //     if(!this.cameraViewNormal) {
+            //         var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, -2, 2]).times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))));
+            //         desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+            //         graphics_state.camera_transform = desired;
+            //     } else {
+            //         var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 0, 0])));
+            //         desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+            //         graphics_state.camera_transform = desired;
+            //     }
+            //   }
         }
     };
     //FOR THE BALL TEXTURE
