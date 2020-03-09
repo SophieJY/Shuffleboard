@@ -326,7 +326,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //     rotationAngle = this.shooting_angle;
             // }
             //draw the angle stick based on the surface cordinates
-            model_transform= model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.5,0])).times(Mat4.rotation(this.shooting_angle,Vec.of(0,0,1)));
+            model_transform = model_transform.times(Mat4.rotation(-Math.PI/2,Vec.of(1,0,0))).times(Mat4.translation([0,-19.2,0])).times(Mat4.rotation(this.shooting_angle,Vec.of(0,0,1)));
             this.shapes.angleLine.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(1,1,0,1)}));
             this.angle_attach= model_transform;
             //--------------- DRAW ENERGY BAR--------------
@@ -361,8 +361,12 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 // this.ballArray[this.currentBall].init_speed = this.scaleValue+3;
                 this.shooting_speed = this.scaleValue;
             }
+
+            // SHOOT
             if(this.angleStickStillness && this.energyBarStill && this.ballArray[this.currentBall].waiting) {
-                console.log(this.shooting_speed)
+                // console.log(this.shooting_speed)
+                console.log(this.shooting_angle)
+                let tester = 0.78/0.25
                 this.ballArray[this.currentBall].vel_vec[0] = -1 * this.shooting_speed * Math.asin(this.shooting_angle);
                 this.ballArray[this.currentBall].vel_vec[2] = -1 * this.shooting_speed * Math.acos(this.shooting_angle);
                 // this.ballArray[this.currentBall].vel_vec[0] = 0.4
@@ -432,7 +436,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                         model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
                             .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
                         this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
-                        console.log("here")
+                        // console.log("here")
                     }
                 }
             }
@@ -462,7 +466,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //TEST STATION/////////////////////////////////////////////////////////////////////////
             
             // const initial_ball_pos = [Vec.of(0.,2.,15.), Vec.of(1.,2.,-5.), Vec.of(3.,2.,-7.), Vec.of(-1.,2.,-7.)];
-            // const initial_ball_vel = [Vec.of(0.4,0,-3), Vec.of(0,0,0), Vec.of(0,0,0), Vec.of(0,0,0)];
+            // const initial_ball_vel = [Vec.of(0.4,0,-5), Vec.of(0,0,0), Vec.of(0,0,0), Vec.of(0,0,0)];
             // const test_ball_count=initial_ball_pos.length;
             // // const speed_thresh = 0.1;
 
