@@ -61,8 +61,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // The scene begins by requesting the camera, shapes, and materials it will need.
             super(context, control_box);
             // First, include a secondary Scene that provides movement controls:
-            if (!context.globals.has_controls)
-                context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
+            // if (!context.globals.has_controls)
+            //     context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
             const r = context.width / context.height;
             context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,40 ), Vec.of( 0,2,0 ), Vec.of( 0,5,0 ) ); // Locate the camera here (inverted matrix).
@@ -75,6 +75,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 'angleLine': new Angle_Stick(),
             };
 
+            this.bgm = new Audio("assets/background.mp3");
+            this.bgm.loop = true;
+            this.bgm.volume = 0.8;
             
             //initial variables
             this.numberOfBalls=6;
@@ -211,6 +214,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         //display objects on the screen
         display(graphics_state) {
+            //play background music
+            this.bgm.play();
+
             const angleStickTime = graphics_state.animation_time/300;
             const energyBarTime = graphics_state.animation_time/200;
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
