@@ -137,6 +137,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 ball1:      context.get_instance( Texture_Rotate ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) }),
                 //blue ball
                 ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
                 p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/end_game.jpg", false )  } ),
                 drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
                 energyBar_material:  context.get_instance( Phong_Shader ).material( Color.of( 40/255, 60/255, 80/255, 1), {ambient: 0}, {diffusivity: 1}, {specularity: 0}, {smoothness: 1} ),
@@ -166,7 +168,6 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.p2Score=0;
             this.whoWon=0
             this.game_is_over=false
-            this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
         }
         //helper to return points depending on where the ball is on the surface
         calculate_points_helper(pos){
@@ -383,7 +384,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 this.sign_Matrix = this.sign_Matrix.times( Mat4.translation( [0,0.5* Math.sin(dt), 2*Math.sin(dt)]) )
                 var color= this.whoWon==1? this.materials.p1wins.override({color:Color.of(1,0,0,1)}): this.whoWon==2? this.materials.p1wins.override({color:Color.of(0,0,1,1)}): this.materials.drew;
                 this.shapes.plane.draw(graphics_state, this.sign_Matrix,color );
-                setTimeout(() => {  this.reset(); }, 4000);
+                setTimeout(() => {  this.reset(); }, 3000);
             }
             let model_transform =  Mat4.identity();
             model_transform = this.initial_scene( graphics_state, model_transform);
@@ -511,7 +512,12 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                         // this.print_ball(curr_ball)
                         model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
                             .times(Mat4.translation([curr_ball.pos_vec[0], curr_ball.pos_vec[1], curr_ball.pos_vec[2]]));
-                        this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
+                        if(curr_ball.speed!=0){
+                            this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1 : this.materials.ball2);
+                        }
+                        else{
+                            this.shapes.ball.draw(graphics_state, model_transform, curr_ball.player===1 ? this.materials.ball1_still : this.materials.ball2_still);
+                        }
                         // console.log("here")
                     }
                 }
