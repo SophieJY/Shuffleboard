@@ -450,7 +450,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //--------------- DRAW ENERGY BAR--------------
             model_transform= Mat4.identity();
             let scaleValue;
-            scaleValue = 3+ 3*Math.sin(energyBarTime);
+            scaleValue = 3.2+ 1.2*Math.sin(energyBarTime);
             let scale = [[1,0,0,0],[0, scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
             model_transform = model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.translation([0,-1,3])).times(scale).times(Mat4.translation([-15,0,0])).times(Mat4.scale([2,2,1]));
             //Animate the the Energy Bar until the user presses 'Enter'
