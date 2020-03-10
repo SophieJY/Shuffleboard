@@ -149,11 +149,11 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.submit_shapes(context, shapes);
             this.materials={
                 //red ball
-                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) }),
+                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball1.jpeg", true) }),
                 //blue ball
-                ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
-                ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
-                ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball2.jpeg", true ) } ),
+                ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball1.jpeg", true ) } ),
+                ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/ball2.jpeg", true ) } ),
                 p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p1win.png", false )  } ),
                 p2wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p2win.png", false )  } ),
                 drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
