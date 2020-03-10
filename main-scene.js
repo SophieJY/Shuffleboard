@@ -173,15 +173,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         calculate_points_helper(pos){
             //2 points for the bottom one
             if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-14 && pos[2]>-18){
-                return 2
+                return 1
             }
             //middle one
             if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-18 && pos[2]>-22){
-                return 4
+                return 2
             }
             //last one
             if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-22 && pos[2]>-26){
-                return 6
+                return 3
             }
             return 0
         }
