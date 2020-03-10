@@ -204,12 +204,6 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }
             return 0
         }
-        wait(ms){
-            var d = new Date();
-            var d2 = null;
-            do { d2 = new Date(); }
-            while(d2-d < ms);
-        }
         //calculates points after finishing all players played
         calculate_points(){
             //iterate through all balls
@@ -440,7 +434,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // //------------------- DRAW  THE ANGLE STICK ---------
             //rotation 
             if(!this.angleStickStillness){
-                this.shooting_angle = -1 * Math.sin(angleStickTime)/4;
+                this.shooting_angle = -1 * Math.sin(angleStickTime)/8;
             } 
             // else {
             //     console.log(this.shooting_angle)
@@ -487,8 +481,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 // console.log(this.shooting_speed)
                 console.log(this.shooting_angle)
                 let tester = 0.78/0.25
-                this.ballArray[this.currentBall].vel_vec[0] = -1 * this.shooting_speed * Math.asin(this.shooting_angle);
-                this.ballArray[this.currentBall].vel_vec[2] = -1 * this.shooting_speed * Math.acos(this.shooting_angle);
+                this.ballArray[this.currentBall].vel_vec[0] = -1 * this.shooting_speed * Math.asin(this.shooting_angle*4);
+                this.ballArray[this.currentBall].vel_vec[2] = -1 * this.shooting_speed * Math.acos(this.shooting_angle*4);
                 // this.ballArray[this.currentBall].vel_vec[0] = 0.4
                 // this.ballArray[this.currentBall].vel_vec[1] = 0.
                 // this.ballArray[this.currentBall].vel_vec[2] = -3.
