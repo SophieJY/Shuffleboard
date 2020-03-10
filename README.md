@@ -1,6 +1,15 @@
 # Shuffleboard
 Group project for UCLA CS174A - Computer Graphics
 
+
+## Contribution(Alphabetical Order)
+
+Ali Mirabzadeh - Alimz758 : Scene, Game Mechanics, other functionalities
+
+Han Bin Lee - bin315a1: Balls Collision and other functionalities
+
+Jiayu(Sophia) - SophieJY: Objects' Animation and other functionalities
+
 ## Game Explanation
 
 This is a 2-player game where each player has given three balls to start with.
@@ -9,11 +18,11 @@ Players need land their balls on three green surfaces to earn points. The points
 
 respectively 1,2, or 3 from bottom to top.  The player with the most point at the end will win.
 
-Note: You can hit the othr player's balls and shoot them outside of the surface.
+Note: You can hit the other player's balls and shoot them outside of the surface.
 
 ## How to Play
     
-You can control the angle of Shooting by pressing 'a' or hit its corresponding button.
+You can control the angle of shooting by pressing 'a' or hit its corresponding button.
     
 Also you need to pick an enery level, the energy bar on the left side of the screen, to shoot(Enter). 
     
@@ -25,16 +34,8 @@ You have contorl over the camera as well, switch to Angle Stick view, ball view 
 
 you desire.
 
-## Contribution(Alphabetical Order)
 
-Ali Mirabzadeh - Alimz758 : Scene, Game Mechanics, other functionalities
-
-Han Bin Lee - bin315a1: Balls Collision and other functionalities
-
-Jiayu(Sophia) - SophieJY: Objects Animation and other functionalities
-
-
-### How to Run?
+## How to Run?
 
 1. Clone this repository 
 
