@@ -86,6 +86,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 'ball': new Subdivision_Sphere(4),
                 'energyBar': new Cube(),
                 'angleLine': new Angle_Stick(),
+                'plane': new Square()
             };
 
             
@@ -108,8 +109,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.ball_radius = 1.0;
             this.inelasticity_factor = 0.9;
             this.speed_thresh = 0.3;
-
-            
+            this.p1Score=0;
+            this.p2Score=0;
+            this.whoWon=0// 1 for p1, 2 for p2, and 3 for drew
+            this.game_is_over=false
+            //for audio
+            this.bgm = new Audio("assets/background.mp3");
+            this.bgm.loop = true;
+            this.bgm.volume = 0.8;
+            this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
             //erase
             this.first_frame = true;
 
@@ -129,6 +137,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 ball1:      context.get_instance( Texture_Rotate ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) }),
                 //blue ball
                 ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/end_game.jpg", false )  } ),
+                drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
                 energyBar_material:  context.get_instance( Phong_Shader ).material( Color.of( 40/255, 60/255, 80/255, 1), {ambient: 0}, {diffusivity: 1}, {specularity: 0}, {smoothness: 1} ),
                 surface_materrial: context.get_instance( Phong_Shader ).material( Color.of( 1 ,0, 1 ,1 ), { ambient: 1 } ),
             };
@@ -151,6 +161,53 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.angleStickStillness=false;
             this.numberOfBalls=6;
             this.currentBall=0;
+            this.numberOfBalls_on_plane=0;
+            this.p1Score=0;
+            this.p2Score=0;
+            this.whoWon=0
+            this.game_is_over=false
+            this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
+        }
+        //helper to return points depending on where the ball is on the surface
+        calculate_points_helper(pos){
+            //2 points for the bottom one
+            if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-14 && pos[2]>-18){
+                return 2
+            }
+            //middle one
+            if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-18 && pos[2]>-22){
+                return 4
+            }
+            //last one
+            if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]<=-22 && pos[2]>-26){
+                return 6
+            }
+            return 0
+        }
+        wait(ms){
+            var d = new Date();
+            var d2 = null;
+            do { d2 = new Date(); }
+            while(d2-d < ms);
+        }
+        //calculates points after finishing all players played
+        calculate_points(){
+            //iterate through all balls
+            for(var i=0; i< this.numberOfBalls;i++){
+                var currBall= this.ballArray[i]
+                //if current ball exist on the surface
+                if(currBall.existence){
+                    //if current ball is for P1
+                    if(currBall.player==1){
+                        this.p1Score+=this.calculate_points_helper(currBall.pos_vec)
+                    }
+                    else{
+                        this.p2Score+=this.calculate_points_helper(currBall.pos_vec)
+                    }
+                }
+            }
+            //assign whoWon number to be used in displaying as well
+            this.whoWon= this.p1Score> this.p2Score ? 1: this.p1Score<this.p2Score ? 2: 3;
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
@@ -159,9 +216,13 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.key_triggered_button("Switch Player", ["S"], () => {
                 this.energyBarStill = false;
                 this.angleStickStillness=false;
+                this.currentBall += 1;
                 if (this.currentBall < this.numberOfBalls) {
-                    this.currentBall += 1;
                     this.ballArray[this.currentBall].existence = true;
+                }
+                else{
+                    this.calculate_points()
+                    this.game_is_over=true
                 }
             });
             this.key_triggered_button("Restart", ["R"], this.reset); this.new_line();
@@ -252,11 +313,14 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             return Vec.of(velocityVector.x, 0, -velocityVector.y );
         }
         //helper function to ensure that the ball is on the surface
-        ball_on_the_surface(pos){
+        ball_on_the_surface(pos, ballIndex){
             if(pos[0]>-7.5 && pos[0]<7.5 && pos[2]>-26 && pos[2]<14.5){
                 return true
             }
-            return false
+            else{
+                this.ballArray[ballIndex].existence=false
+                return false
+            }
         }
 
         print_vector(vec) {
@@ -303,11 +367,24 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
 
         //display objects on the screen
         display(graphics_state) {
-
+            
+            //play background music
+            //this.bgm.play();
+            const dt = graphics_state.animation_delta_time / 1000;
             const angleStickTime = graphics_state.animation_time/300;
             const energyBarTime = graphics_state.animation_time/200;
             const friction_factor = 0.005;
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+            //End the game if it's over
+            if(this.game_is_over ){
+                document.getElementById('p1').innerHTML = "Player1: " + this.p1Score.toString();
+                document.getElementById('p2').innerHTML = "Player2: " + this.p2Score.toString();
+                document.getElementById('winner').innerHTML =  this.p1Score> this.p2Score ? "The Winner is Player1": this.p1Score< this.p2Score? "The Winner is Player2" :"Drew";
+                this.sign_Matrix = this.sign_Matrix.times( Mat4.translation( [0,0.5* Math.sin(dt), 2*Math.sin(dt)]) )
+                var color= this.whoWon==1? this.materials.p1wins.override({color:Color.of(1,0,0,1)}): this.whoWon==2? this.materials.p1wins.override({color:Color.of(0,0,1,1)}): this.materials.drew;
+                this.shapes.plane.draw(graphics_state, this.sign_Matrix,color );
+                setTimeout(() => {  this.reset(); }, 4000);
+            }
             let model_transform =  Mat4.identity();
             model_transform = this.initial_scene( graphics_state, model_transform);
 
@@ -341,15 +418,11 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 this.scaleValue = scaleValue;
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.materials.energyBar_material.override({color: Color.of(0.5 + color_scale, 0, 0.5 - color_scale, 1)}));
                 //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
-                if(this.currentBall>5){
-                    //TO DO
-                    //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
-                    //FOR NOW
-                    this.reset()
-                }
-                else{
+                if(this.currentBall<6){
                     this.ballArray[this.currentBall].animationStartTime = graphics_state.animation_time/1000;
                 }
+                
+            
             }
             //Fix the Energy Bar after the user pressed the enter
             else{
@@ -384,14 +457,14 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //update position vector based on speed and animation start time
             //vf = vi + at
             //FORCE TO RESTART IF ALL BALL USED, CALCULATE POINTS
-            if(this.currentBall>5){
-                //TO DO
-                //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
-                //FOR NOW
-                this.reset()
-            }
+            // if(this.currentBall>5){
+            //     //TO DO
+            //     //CALL A HELPER FUNCTION TO CALCULATE THE POINTS THEN REST
+            //     //FOR NOW
+            //     this.reset()
+            // }
             // //IF THERE ARE BALLS LEFT OVER
-            else{
+            if(this.currentBall<6){
                 // let timeTraveled = this.ballArray[this.currentBall].init_speed/this.friction;
                 // if (graphics_state.animation_time/1000 - this.ballArray[this.currentBall].animationStartTime < timeTraveled) {
                 //     this.ballArray[this.currentBall].pos_vec = this.update_pos(graphics_state);
@@ -402,7 +475,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 //     //make the current ball visible
                 //     this.ballArray[this.currentBall].existence = true;
                 // }
-
+                
                 //Check for collision
                 for(let i=0; i<this.numberOfBalls_on_plane; i++) {
                     for(let j=i+1; j<this.numberOfBalls_on_plane; j++) {
@@ -425,12 +498,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                         this.ballArray[i].speed = 0;
                     }
                 }
+                //helper function to calculate
+              
 
                 //iterate through the ball array and draw each existing balls
                 for(let i = 0; i < this.numberOfBalls_on_plane; i++) {
                     let curr_ball = this.ballArray[i];
                     //draw the balls based on their existence
-                    if (curr_ball.existence && this.ball_on_the_surface(curr_ball.pos_vec)){
+                    if (curr_ball.existence && this.ball_on_the_surface(curr_ball.pos_vec, i)){
+                        
                         //console.log(curr_ball.pos_vec[0]);
                         // this.print_ball(curr_ball)
                         model_transform = Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
@@ -439,8 +515,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                         // console.log("here")
                     }
                 }
+            
             }
-
             // // draw sample balls for debugging
             // for(let i = 0; i < this.sample_balls.length; i++) {
             //     let curr_ball = this.sample_balls[i];
@@ -648,6 +724,26 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }`;
         }
     }
-
-
+    class Fake_Bump_Map extends Phong_Shader                         // Same as Phong_Shader, except this adds one line of code.
+    { fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
+        { return `
+            uniform sampler2D texture;
+            void main()
+            { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
+              { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
+                return;
+              }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
+                                                // Phong shading is not to be confused with the Phong Reflection Model.
+              
+              vec4 tex_color = texture2D( texture, f_tex_coord );                    // Use texturing as well.
+              vec3 bumped_N  = normalize( N + tex_color.rgb - .5*vec3(1,1,1) );      // Slightly disturb normals based on sampling
+                                                                                     // the same image that was used for texturing.
+                                                                                     
+                                                                                     // Compute an initial (ambient) color:
+              if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
+              else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+              gl_FragColor.xyz += phong_model_lights( bumped_N );                    // Compute the final color with contributions from lights.
+            }`;
+        }
+    }
 ///Class Ball, vec3(, , ,) (Position pos_vec) (Velocity vel_vec) ......
