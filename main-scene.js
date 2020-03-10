@@ -121,6 +121,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.shooting_speed=0;
             this.shooting_vel_vec=Vec.of(0,0,0);
             this.cameraViewNormal = true;
+            this.cameraViewBall = false;
             this.ball_radius = 1.0;
             this.inelasticity_factor = 0.9;
             this.speed_thresh = 0.3;
@@ -247,18 +248,36 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                     this.calculate_points()
                     this.game_is_over=true
                 }
+                this.attached = () => this.initial_camera_location;
+                this.cameraViewNormal = true;
+                this.cameraViewBall = false;
             });
-            this.key_triggered_button("Restart", ["r"], this.reset);
             this.new_line()
+            this.key_triggered_button("Restart", ["r"], ()=> {
+                this.reset();
+                this.attached = () => this.initial_camera_location;
+                this.cameraViewNormal = true;
+                this.cameraViewBall = false;
+            }); this.new_line();
             this.live_string(box => box.textContent = "------------ Camera View Controller ------------");
             this.new_line();
             this.key_triggered_button( "Attach to Angle-Stick",     [ "x" ], () => {
                 this.attached = () => this.angle_attach;
                 this.cameraViewNormal = false;
+                this.cameraViewBall = false;
+            } );
+            this.key_triggered_button( "Attach to the ball",     [ "b" ], () => {
+                if (this.ballArray[this.currentBall].existence) {
+                    this.attached = () => Mat4.identity().times(Mat4.rotation(Math.PI / 8, Vec.of(1, 0, 0)))
+                        .times(Mat4.translation([this.ballArray[this.currentBall].pos_vec[0], this.ballArray[this.currentBall].pos_vec[1], this.ballArray[this.currentBall].pos_vec[2]]));
+                    this.cameraViewNormal = false;
+                    this.cameraViewBall = true;
+                }
             } );
             this.key_triggered_button( "Normal View",  [ "v" ], () => {
                 this.attached = () => this.initial_camera_location;
                 this.cameraViewNormal = true;
+                this.cameraViewBall = false;
             } );
         }
         //display the initial scene
@@ -575,9 +594,24 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //attached function
             if(this.attached != undefined) {
                 if(!this.cameraViewNormal) {
-                    var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, -2, 2]).times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))));
-                    desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
-                    graphics_state.camera_transform = desired;
+                    if(this.cameraViewBall) {
+                        if (this.ballArray[this.currentBall].existence) {
+                            var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 2, 8])));
+                            desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+                            graphics_state.camera_transform = desired;
+                        } else {
+                            this.attached = () => this.initial_camera_location;
+                            this.cameraViewNormal = true;
+                            this.cameraViewBall = false;
+                            var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 0, 0])));
+                            desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+                            graphics_state.camera_transform = desired;
+                        }
+                    } else {
+                        var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, -2, 2]).times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)))));
+                        desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
+                        graphics_state.camera_transform = desired;
+                    }
                 } else {
                     var desired = Mat4.inverse(this.attached().times(Mat4.translation([0, 0, 0])));
                     desired = desired.map((x, i) => Vec.from(graphics_state.camera_transform[i]).mix(x, .1));
