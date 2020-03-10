@@ -231,9 +231,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
-            this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLE BOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>-----------------------------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
+            this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLEBOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>-----------------------------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
             this.key_triggered_button("Angle Control", ["A"], () => { this.angleStickStillness= !this.angleStickStillness}); this.new_line();
-            this.control_panel.innerHTML += "2. Choose the Energey Level for the desired speednr<br> The cube with transformation on the left represent the energy";this.new_line()
+            this.control_panel.innerHTML += "2. Choose the Energy Level for the desired speed<br> The cube with transformation on the left represents the energy";this.new_line()
             this.key_triggered_button("Energy Level - Shoot", ["Enter"], () =>{ this.energyBarStill= !this.energyBarStill});this.new_line();
             this.control_panel.innerHTML += "Switch between players"; this.new_line()
             this.key_triggered_button("Switch Player", ["S"], () => {
@@ -250,7 +250,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             });this.new_line()
             this.key_triggered_button("Restart", ["R"], ()=>this.reset); this.new_line();
             this.control_panel.innerHTML +="------------ Camera View Controller ------------";this.new_line()
-            this.key_triggered_button( "Attach to Angle-Stcik",     [ "X" ], () => {
+            this.key_triggered_button( "Attach to Angle-Stick",     [ "X" ], () => {
                 this.attached = () => this.angle_attach;
                 this.cameraViewNormal = false;
             } );
