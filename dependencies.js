@@ -33,6 +33,19 @@ window.Square = window.classes.Square =
         }
     };
 
+window.LargeSquare = window.classes.LargeSquare =
+    class LargeSquare extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
+        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+    {                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals,
+        constructor()                         // etc) smaller and more cache friendly.
+        {
+            super("positions", "normals", "texture_coords");                                   // Name the values we'll define per each vertex.
+            this.positions.push(...Vec.cast([-100, -100, 0], [100, -100, 0], [-100, 100, 0], [100, 100, 0]));   // Specify the 4 square corner locations.
+            this.normals.push(...Vec.cast([0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]));   // Match those up with normal vectors.
+            this.texture_coords.push(...Vec.cast([0, 0], [4, 0], [0, 4], [4, 4]));   // Draw a square in texture coordinates too.
+            this.indices.push(0, 1, 2, 1, 3, 2);                   // Two triangles this time, indexing into four distinct vertices.
+        }
+    };
 
 window.Tetrahedron = window.classes.Tetrahedron =
     class Tetrahedron extends Shape                       // The Tetrahedron shape demonstrates flat vs smooth shading (a boolean argument

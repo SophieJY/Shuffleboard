@@ -52,6 +52,21 @@ class Cube extends Shape
       // It stinks to manage arrays this big.  Later we'll show code that generates these same cube vertices more automatically.
     }
 };
+
+window.Board = window.classes.Board =
+    class Board extends Shape    // A cube inserts six square strips into its arrays.
+    { constructor()
+    { super( "positions", "normals", "texture_coords" );
+        for( var i = 0; i < 3; i++ )
+            for( var j = 0; j < 2; j++ )
+            { var square_transform = Mat4.rotation( i == 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
+                .times( Mat4.rotation( Math.PI * j - ( i == 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
+                .times( Mat4.translation([ 0, 0, 1 ]) );
+                Square.insert_transformed_copy_into( this, [], square_transform );
+            }
+    }
+    }
+
 window.Angle_Stick = window.classes.Angle_Stick =
     class Angle_Stick extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior
         // edges don't make any important seams.  In these cases there's no reason not to re-use data of
@@ -82,14 +97,14 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );            context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
             //Adding shapes on the screen
             const shapes = {
-                'surface': new Cube(),
+                'surface': new Board(),
                 'ball': new Subdivision_Sphere(4),
                 'energyBar': new Cube(),
                 'angleLine': new Angle_Stick(),
-                'plane': new Square()
+                'plane': new Square(),
+                'background': new LargeSquare()
             };
 
-            
             //initial variables
             this.numberOfBalls=6;
             this.numberOfBalls_on_plane=0;
@@ -144,6 +159,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
                 energyBar_material:  context.get_instance( Phong_Shader ).material( Color.of( 40/255, 60/255, 80/255, 1), {ambient: 0}, {diffusivity: 1}, {specularity: 0}, {smoothness: 1} ),
                 surface_materrial: context.get_instance( Phong_Shader ).material( Color.of( 1 ,0, 1 ,1 ), { ambient: 1 } ),
+                board_materrial: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/texture_board.jpg", true ) } ),
+                background_material: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/background.jpg", true ) } ),
             };
             // Make some Material objects available to you:
             this.clay = context.get_instance(Phong_Shader).material(Color.of(.9, .5, .9, 1), {
@@ -248,7 +265,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 twoPointsColor = Color.of(0, 176/255, 6/255, 1), threePointsColor = Color.of(0, 115/255, 4/255, 1);
             //draw the rectangular-cube with rotation of Math.PI/8 arounf x-axis  surface
             model_transform= model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.scale([7,1,14]));
-            this.shapes.surface.draw(graphics_state, model_transform, this.materials.surface_materrial.override({color:surfaceColor }));
+            this.shapes.surface.draw(graphics_state, model_transform, this.materials.board_materrial);
             //draw three rectangles on the surface representing points
             //draw the rectangular surface
             //for three points
@@ -346,6 +363,17 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             }
         }
 
+        draw_background(graphics_state) {
+            let model_transform= Mat4.identity().times(Mat4.rotation(Math.PI/8 + 1/2 * Math.PI,Vec.of(1,0,0))).times(Mat4.translation([0,0,1]));
+            this.shapes.background.draw(graphics_state, model_transform, this.materials.background_material );
+            model_transform= Mat4.identity().times(Mat4.rotation(Math.PI/8 ,Vec.of(1,0,0))).times(Mat4.translation([0,0,-80]));
+            this.shapes.background.draw(graphics_state, model_transform, this.materials.background_material );
+            model_transform= Mat4.identity().times(Mat4.rotation(Math.PI/2 ,Vec.of(0,1,0))).times(Mat4.translation([0,0,-100]));
+            this.shapes.background.draw(graphics_state, model_transform, this.materials.background_material );
+            model_transform= Mat4.identity().times(Mat4.rotation(Math.PI/2 ,Vec.of(0,1,0))).times(Mat4.translation([0,0,100]));
+            this.shapes.background.draw(graphics_state, model_transform, this.materials.background_material );
+        }
+
         perform_collision_effect(ball1, ball2) {
             const dist_between = Math.sqrt(Math.pow((ball1.pos_vec[0] - ball2.pos_vec[0]),2) + Math.pow((ball1.pos_vec[1] - ball2.pos_vec[1]),2)+ Math.pow((ball1.pos_vec[2] - ball2.pos_vec[2]),2));
             let collision_tangent_1 = ball1.pos_vec.minus(ball2.pos_vec)
@@ -377,6 +405,10 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             
             //play background music
             //this.bgm.play();
+
+            //draw background
+            this.draw_background(graphics_state);
+
             const dt = graphics_state.animation_delta_time / 1000;
             const angleStickTime = graphics_state.animation_time/300;
             const energyBarTime = graphics_state.animation_time/200;
@@ -418,7 +450,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             let scaleValue;
             scaleValue = 3+ 3*Math.sin(energyBarTime);
             let scale = [[1,0,0,0],[0, scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
-            model_transform = model_transform.times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
+            model_transform = model_transform.times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.translation([0,-1,3])).times(scale).times(Mat4.translation([-15,0,0])).times(Mat4.scale([2,2,1]));
             //Animate the the Energy Bar until the user presses 'Enter'
             let color_scale = Math.sin(energyBarTime) * 0.5;
             if(!this.energyBarStill){
@@ -434,7 +466,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //Fix the Energy Bar after the user pressed the enter
             else{
                 let scale = [[1,0,0,0],[0, this.scaleValue ,0,0],[0,0,1,0],[0,0,0,1]];
-                model_transform= Mat4.identity().times(scale).times(Mat4.translation([-20,0,0])).times(Mat4.scale([2,2,1]));
+                model_transform= Mat4.identity().times(Mat4.rotation(Math.PI/8,Vec.of(1,0,0))).times(Mat4.translation([0,-1,3])).times(scale).times(Mat4.translation([-15,0,0])).times(Mat4.scale([2,2,1]));
                 let still_color_scale = (this.scaleValue-3)/3 * 0.5;
 
                 this.shapes.energyBar.draw(graphics_state, model_transform, this.plastic.override({color: Color.of(0.5 + still_color_scale, 0, 0.5 - still_color_scale, 1)}));
