@@ -89,8 +89,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // The scene begins by requesting the camera, shapes, and materials it will need.
             super(context, control_box);
             // First, include a secondary Scene that provides movement controls:
-            if (!context.globals.has_controls)
-                context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
+            // if (!context.globals.has_controls)
+            //     context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
             const r = context.width / context.height;
             context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,40 ), Vec.of( 0,2,0 ), Vec.of( 0,5,0 ) ); // Locate the camera here (inverted matrix).
@@ -232,7 +232,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
             this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLEBOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>------------------ Start Playing! -----------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
-            this.key_triggered_button("Angle Control", ["A"], () => { this.angleStickStillness= !this.angleStickStillness}); 
+            this.key_triggered_button("Angle Control", ["a"], () => { this.angleStickStillness= !this.angleStickStillness}); 
             this.new_line()
             this.live_string(box => box.textContent = "2. Choose the Energy Level for the desired speed");
             this.new_line();
@@ -242,7 +242,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.new_line();
             this.live_string(box => box.textContent = "---------- Switch between players OR Restart the game ----------");
             this.new_line()
-            this.key_triggered_button("Switch Player", ["S"], () => {
+            this.key_triggered_button("Switch Player", ["s"], () => {
                 this.energyBarStill = false;
                 this.angleStickStillness=false;
                 this.currentBall += 1;
@@ -254,15 +254,15 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                     this.game_is_over=true
                 }
             });
-            this.key_triggered_button("Restart", ["R"], this.reset);
+            this.key_triggered_button("Restart", ["r"], this.reset);
             this.new_line()
             this.live_string(box => box.textContent = "------------ Camera View Controller ------------");
             this.new_line();
-            this.key_triggered_button( "Attach to Angle-Stick",     [ "X" ], () => {
+            this.key_triggered_button( "Attach to Angle-Stick",     [ "x" ], () => {
                 this.attached = () => this.angle_attach;
                 this.cameraViewNormal = false;
             } );
-            this.key_triggered_button( "Normal View",  [ "V" ], () => {
+            this.key_triggered_button( "Normal View",  [ "v" ], () => {
                 this.attached = () => this.initial_camera_location;
                 this.cameraViewNormal = true;
             } );
