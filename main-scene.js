@@ -89,8 +89,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             // The scene begins by requesting the camera, shapes, and materials it will need.
             super(context, control_box);
             // First, include a secondary Scene that provides movement controls:
-            if (!context.globals.has_controls)
-                context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
+            // if (!context.globals.has_controls)
+            //     context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
             const r = context.width / context.height;
             context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,40 ), Vec.of( 0,2,0 ), Vec.of( 0,5,0 ) ); // Locate the camera here (inverted matrix).
@@ -149,11 +149,11 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.submit_shapes(context, shapes);
             this.materials={
                 //red ball
-                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) }),
+                ball1:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball1.jpeg", true) }),
                 //blue ball
-                ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
-                ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
-                ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
+                ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball2.jpeg", true ) } ),
+                ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball1.jpeg", true ) } ),
+                ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1), { ambient: 1, texture: context.get_instance( "assets/ball2.jpeg", true ) } ),
                 p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p1win.png", false )  } ),
                 p2wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p2win.png", false )  } ),
                 drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
@@ -231,12 +231,18 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         }
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
-            this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLEBOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>-----------------------------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
-            this.key_triggered_button("Angle Control", ["A"], () => { this.angleStickStillness= !this.angleStickStillness}); this.new_line();
-            this.control_panel.innerHTML += "2. Choose the Energy Level for the desired speed<br> The cube with transformation on the left represents the energy";this.new_line()
-            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () =>{ this.energyBarStill= !this.energyBarStill});this.new_line();
-            this.control_panel.innerHTML += "Switch between players"; this.new_line()
-            this.key_triggered_button("Switch Player", ["S"], () => {
+            this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLEBOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>------------------ Start Playing! -----------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
+            this.key_triggered_button("Angle Control", ["a"], () => { this.angleStickStillness= !this.angleStickStillness}); 
+            this.new_line()
+            this.live_string(box => box.textContent = "2. Choose the Energy Level for the desired speed");
+            this.new_line();
+            this.live_string(box => box.textContent = "The cube with transformation on the left represents the energy");
+            this.new_line();
+            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () =>{ this.energyBarStill= !this.energyBarStill});
+            this.new_line();
+            this.live_string(box => box.textContent = "---------- Switch between players OR Restart the game ----------");
+            this.new_line()
+            this.key_triggered_button("Switch Player", ["s"], () => {
                 this.energyBarStill = false;
                 this.angleStickStillness=false;
                 this.currentBall += 1;
@@ -247,14 +253,16 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                     this.calculate_points()
                     this.game_is_over=true
                 }
-            });this.new_line()
-            this.key_triggered_button("Restart", ["R"], ()=>this.reset); this.new_line();
-            this.control_panel.innerHTML +="------------ Camera View Controller ------------";this.new_line()
-            this.key_triggered_button( "Attach to Angle-Stick",     [ "X" ], () => {
+            });
+            this.key_triggered_button("Restart", ["r"], this.reset);
+            this.new_line()
+            this.live_string(box => box.textContent = "------------ Camera View Controller ------------");
+            this.new_line();
+            this.key_triggered_button( "Attach to Angle-Stick",     [ "x" ], () => {
                 this.attached = () => this.angle_attach;
                 this.cameraViewNormal = false;
             } );
-            this.key_triggered_button( "Normal View",  [ "V" ], () => {
+            this.key_triggered_button( "Normal View",  [ "v" ], () => {
                 this.attached = () => this.initial_camera_location;
                 this.cameraViewNormal = true;
             } );
