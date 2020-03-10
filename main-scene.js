@@ -139,7 +139,8 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 ball2:      context.get_instance( Texture_Rotate ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
                 ball1_still:      context.get_instance( Phong_Shader ).material( Color.of(1,0,0,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
                 ball2_still:      context.get_instance( Phong_Shader ).material( Color.of(0,0,1,1), { ambient: 1, texture: context.get_instance( "assets/8ball.png", false ) } ),
-                p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/end_game.jpg", false )  } ),
+                p1wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p1win.png", false )  } ),
+                p2wins:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/p2win.png", false )  } ),
                 drew:           context.get_instance( Fake_Bump_Map ).material( Color.of( 0, 0, 0,1 ), { ambient: .8, diffusivity: .5, specularity: .5 , texture: context.get_instance( "assets/drew.jpg", false )  } ),
                 energyBar_material:  context.get_instance( Phong_Shader ).material( Color.of( 40/255, 60/255, 80/255, 1), {ambient: 0}, {diffusivity: 1}, {specularity: 0}, {smoothness: 1} ),
                 surface_materrial: context.get_instance( Phong_Shader ).material( Color.of( 1 ,0, 1 ,1 ), { ambient: 1 } ),
@@ -168,6 +169,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.p2Score=0;
             this.whoWon=0
             this.game_is_over=false
+            this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
         }
         //helper to return points depending on where the ball is on the surface
         calculate_points_helper(pos){
@@ -213,9 +215,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         make_control_panel()             // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         {
             this.control_panel.innerHTML += "-------------------------------- WELCOME TO SHUFFLE BOARD --------------------------------<br> Player with the most points will win<br>Each player has 3 balls to shoot<br>You'll get 1,2, or 3 points respectively depending on which green surface your ball lands<br>-----------------------------------------<br>1. Fix the Angle Stick at an angle you desire"; this.new_line()
-            this.key_triggered_button("Angle Control", ["A"], () => this.angleStickStillness = () => this.angleStickStillness= !this.angleStickStillness); this.new_line()
+            this.key_triggered_button("Angle Control", ["A"], () => { this.angleStickStillness= !this.angleStickStillness}); this.new_line();
             this.control_panel.innerHTML += "2. Choose the Energey Level for the desired speednr<br> The cube with transformation on the left represent the energy";this.new_line()
-            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () => this.energyBarStill = () => this.energyBarStill= !this.energyBarStill);this.new_line()
+            this.key_triggered_button("Energy Level - Shoot", ["Enter"], () =>{ this.energyBarStill= !this.energyBarStill});this.new_line();
             this.control_panel.innerHTML += "Switch between players"; this.new_line()
             this.key_triggered_button("Switch Player", ["S"], () => {
                 this.energyBarStill = false;
@@ -229,9 +231,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                     this.game_is_over=true
                 }
             });this.new_line()
-            this.key_triggered_button("Restart", ["R"], this.reset); this.new_line();
+            this.key_triggered_button("Restart", ["R"], ()=>this.reset); this.new_line();
             this.control_panel.innerHTML +="------------ Camera View Controller ------------";this.new_line()
-            this.key_triggered_button( "Attach to Angle-Stcik",     [ "Space" ], () => {
+            this.key_triggered_button( "Attach to Angle-Stcik",     [ "X" ], () => {
                 this.attached = () => this.angle_attach;
                 this.cameraViewNormal = false;
             } );
@@ -386,7 +388,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 document.getElementById('p2').innerHTML = "Player2: " + this.p2Score.toString();
                 document.getElementById('winner').innerHTML =  this.p1Score> this.p2Score ? "The Winner is Player1": this.p1Score< this.p2Score? "The Winner is Player2" :"Drew";
                 this.sign_Matrix = this.sign_Matrix.times( Mat4.translation( [0,0.5* Math.sin(dt), 2*Math.sin(dt)]) )
-                var color= this.whoWon==1? this.materials.p1wins.override({color:Color.of(1,0,0,1)}): this.whoWon==2? this.materials.p1wins.override({color:Color.of(0,0,1,1)}): this.materials.drew;
+                var color= this.whoWon==1? this.materials.p1wins: this.whoWon==2? this.materials.p2wins: this.materials.drew;
                 this.shapes.plane.draw(graphics_state, this.sign_Matrix,color );
                 setTimeout(() => {  this.reset(); }, 3000);
             }
