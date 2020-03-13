@@ -140,6 +140,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             //for audio
             this.bgm = new Audio("assets/background.mp3");
             this.bgm.loop = true;
+            this.bgm.volume = 0.6;
+            this.collision_effect = new Audio("assets/ball_sound.mp3");
+            this.bgm.loop = true;
             this.bgm.volume = 0.8;
             this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
             //erase
@@ -402,7 +405,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
         display(graphics_state) {
 //             console.log(this.game_state)
             //play background music
-//             this.bgm.play();
+            this.bgm.play();
 
             //draw background
             this.draw_background(graphics_state);
@@ -502,7 +505,9 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                 for(let i=0; i<this.balls_shot_ct; i++) {
                     for(let j=i+1; j<this.balls_shot_ct; j++) {
                         if (this.check_collision_xzplane(this.ball_array[i], this.ball_array[j])){
+                            this.collision_effect.play()
                             this.perform_collision_effect(this.ball_array[i], this.ball_array[j]);
+                            setTimeout(() => {  this,this.collision_effect.pause(); }, 110);
                         }
                     }
                 }
