@@ -141,9 +141,12 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.bgm = new Audio("assets/background.mp3");
             this.bgm.loop = true;
             this.bgm.volume = 0.6;
+            this.ball_shooting_effect = new Audio("assets/ball_shooting.mp3");
+            this.ball_shooting_effect.loop = false;
+            this.ball_shooting_effect.volumn = 0.8;
             this.collision_effect = new Audio("assets/ball_sound.mp3");
-            this.bgm.loop = true;
-            this.bgm.volume = 0.8;
+            this.collision_effect.loop = false;
+            this.collision_effect.volume = 0.8;
             this.sign_Matrix = Mat4.identity().times( Mat4.scale( [4, 4, 4 ]));
             //erase
             this.first_frame = true;
@@ -253,6 +256,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
             this.key_triggered_button("Energy Level - Shoot", ["Enter"], () =>{ 
                 if(this.game_state==0) {
                     this.energyBarStill= !this.energyBarStill
+                    this.ball_shooting_effect.play();
                 }
             });
             this.new_line()
@@ -507,7 +511,7 @@ window.Shuffle_Board_Scene = window.classes.Shuffle_Board_Scene =
                         if (this.check_collision_xzplane(this.ball_array[i], this.ball_array[j])){
                             this.collision_effect.play()
                             this.perform_collision_effect(this.ball_array[i], this.ball_array[j]);
-                            setTimeout(() => {  this,this.collision_effect.pause(); }, 110);
+                            //setTimeout(() => {  this,this.collision_effect.pause(); }, 110);
                         }
                     }
                 }
